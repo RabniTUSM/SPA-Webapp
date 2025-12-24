@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+
+# Node (frontend)
+Client/node_modules/
+Client/dist/
+Client/build/
+
+# Build folders (Java backend)
+Server/target/
+
+# Env
+*.env
