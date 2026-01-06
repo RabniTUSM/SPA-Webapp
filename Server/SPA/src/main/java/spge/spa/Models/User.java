@@ -20,7 +20,7 @@ public class User {
     @Column
     private String phone;
     @Column(nullable = false)
-    private Boolean isVipMember;
+    private boolean isVipMember;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private RoleName role;
@@ -69,11 +69,11 @@ public class User {
         this.phone = phone;
     }
 
-    public Boolean getVipMember() {
+    public boolean getVipMember() {
         return isVipMember;
     }
 
-    public void setVipMember(Boolean vipMember) {
+    public void setVipMember(boolean vipMember) {
         isVipMember = vipMember;
     }
 

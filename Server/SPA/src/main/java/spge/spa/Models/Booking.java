@@ -17,7 +17,7 @@ public class Booking {
     private User employee;
     @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    private SpaService spaService;
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
@@ -47,12 +47,12 @@ public class Booking {
         this.employee = employee;
     }
 
-    public Service getService() {
-        return service;
+    public SpaService getService() {
+        return spaService;
     }
 
-    public void setService(Service service) {
-        this.service = service;
+    public void setService(SpaService spaService) {
+        this.spaService = spaService;
     }
 
     public Location getLocation() {

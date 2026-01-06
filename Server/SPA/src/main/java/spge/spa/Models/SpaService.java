@@ -3,8 +3,8 @@ package spge.spa.Models;
 import jakarta.persistence.*;
 
 @Entity
-
-public class Service {
+@Table(name="services")
+public class SpaService {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
