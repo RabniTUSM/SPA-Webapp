@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class UserInputDTO {
+public class AdminUserInputDTO {
     @NotBlank
     @Size(min = 3, max = 50)
     private String username;
@@ -20,6 +20,9 @@ public class UserInputDTO {
     @NotBlank
     @Size(min = 10, max = 10)
     private String phone;
+    private boolean isVipMember;
+    @NotBlank
+    private String role;
 
     public String getUsername() {
         return username;
@@ -59,5 +62,21 @@ public class UserInputDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public boolean isVipMember() {
+        return isVipMember;
+    }
+
+    public void setVipMember(boolean vipMember) {
+        isVipMember = vipMember;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

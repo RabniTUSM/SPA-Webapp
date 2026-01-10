@@ -1,30 +1,20 @@
-package spge.spa.Models;
+package spge.spa.DTOs;
 
-import jakarta.persistence.*;
-import spge.spa.Models.enums.RoleName;
-
-@Entity
-@Table(name = "users")
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class UserOutputDTO {
     private Long id;
-    @Column(nullable = false, unique = true)
     private String username;
-    @Column(nullable = false)
-    private String password;
-    @Column(nullable = false)
     private String name;
-    @Column(nullable = false, unique = true)
     private String email;
-    @Column
     private String phone;
-    private boolean isVipMember=false;
-    @Enumerated(EnumType.STRING)
-    private RoleName role=RoleName.ROLE_CUSTOMER;
+    private boolean isVipMember;
+    private String role;
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -33,14 +23,6 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getName() {
@@ -67,7 +49,7 @@ public class User {
         this.phone = phone;
     }
 
-    public boolean getVipMember() {
+    public boolean isVipMember() {
         return isVipMember;
     }
 
@@ -75,11 +57,11 @@ public class User {
         isVipMember = vipMember;
     }
 
-    public RoleName getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(RoleName role) {
+    public void setRole(String role) {
         this.role = role;
     }
 }
