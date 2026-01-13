@@ -90,7 +90,7 @@ public class UserService {
 
     public void deleteUserById(Long id){
         if(id!=null) {
-            userRepository.deleteUserById(id).orElseThrow(() -> new RuntimeException("User not found"));
+            userRepository.deleteById(id);
         }
         else{
             throw new RuntimeException("ID is null");
