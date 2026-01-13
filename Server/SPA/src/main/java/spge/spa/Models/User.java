@@ -1,7 +1,8 @@
 package spge.spa.Models;
 
 import jakarta.persistence.*;
-import spge.spa.Models.enums.RoleName;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
@@ -19,9 +20,11 @@ public class User {
     private String email;
     @Column
     private String phone;
+    @Column
     private boolean isVipMember=false;
-    @Enumerated(EnumType.STRING)
-    private RoleName role=RoleName.ROLE_CUSTOMER;
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role = new Role();
 
     public Long getId() {
         return id;
@@ -75,11 +78,12 @@ public class User {
         isVipMember = vipMember;
     }
 
-    public RoleName getRole() {
-        return role;
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
-    public void setRole(RoleName role) {
-        this.role = role;
+    public Role getRole() {
+        return role;
     }
 }

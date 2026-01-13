@@ -6,12 +6,14 @@ import spge.spa.DTOs.CreateAdminDTO;
 import spge.spa.DTOs.UserInputDTO;
 import spge.spa.DTOs.UserOutputDTO;
 import spge.spa.Models.User;
-import spge.spa.Models.enums.RoleName;
-import spge.spa.Repositories.UserRepository;
-import spge.spa.Services.UserService;
+import spge.spa.Services.RoleService;
 
 @Component
 public class UserMapper {
+    private final RoleService roleService;
+    public UserMapper(RoleService roleService) {
+        this.roleService = roleService;
+    }
     public User UserDTOtoUser(UserInputDTO dto) {
             if(dto!=null) {
                 User user = new User();
@@ -30,6 +32,7 @@ public class UserMapper {
                 if(dto.getPhone()!=null) {
                     user.setPhone(dto.getPhone());
                 }
+                user.setRole(roleService.getRoleByName("CUSTOMER"));
                 return user;
             }
             else {
@@ -47,7 +50,7 @@ public class UserMapper {
                 user.setVipMember(true);
             }
             if (dto.getRole() != null) {
-                user.setRole(RoleName.fromString(dto.getRole()));
+                user.setRole(roleService.getRoleByName(dto.getRole()));
             }
             return user;
         }
@@ -64,7 +67,7 @@ public class UserMapper {
             dto.setEmail(user.getEmail());
             dto.setPhone(user.getPhone());
             dto.setVipMember(user.getVipMember());
-            dto.setRole(user.getRole().toString());
+             dto.setRole(user.getRole().getName());
             return dto;
         }
         else{
@@ -90,7 +93,7 @@ public class UserMapper {
             if(dto.getPhone()!=null) {
                 user.setPhone(dto.getPhone());
             }
-            user.setRole(RoleName.ROLE_ADMIN);
+            user.setRole(roleService.getRoleByName("ADMIN"));
             return user;
         }
         else{
