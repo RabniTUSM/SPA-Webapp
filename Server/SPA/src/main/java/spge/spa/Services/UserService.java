@@ -6,6 +6,7 @@ import spge.spa.DTOs.CreateAdminDTO;
 import spge.spa.DTOs.UserInputDTO;
 import spge.spa.DTOs.UserOutputDTO;
 import spge.spa.Mappers.UserMapper;
+import spge.spa.Models.User;
 import spge.spa.Repositories.UserRepository;
 
 import java.util.List;
@@ -13,11 +14,13 @@ import java.util.List;
 @Service
 public class UserService {
     private UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository) {
+
+    public UserService(UserRepository userRepository, UserMapper userMapper) {
+        this.userMapper = userMapper;
         this.userRepository = userRepository;
     }
-    private final UserMapper userMapper= new UserMapper(userRepository);
 
     public void createUser(UserInputDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())){
@@ -31,7 +34,15 @@ public class UserService {
     }
     public void adminUserSave(AdminUserInputDTO dto){
         if(dto!=null){
-            var user = userMapper.AdminDTOtoUser(dto);
+            User appliedUser;
+            if(userRepository.existsByUsername(dto.getUsername())){
+                appliedUser = userRepository.findByUsername(dto.getUsername())
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+            }
+            else{
+                appliedUser = new User();
+            }
+            var user = userMapper.AdminDTOtoUser(dto,appliedUser);
             userRepository.save(user);
         }
         else{
