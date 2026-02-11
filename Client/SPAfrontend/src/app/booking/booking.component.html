@@ -1,51 +1,106 @@
-<div class="booking-page">
-  <h1>Bookings</h1>
+<div class="booking-admin">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Bookings control</p>
+      <h1>Reservations manager</h1>
+      <p class="lead">Edit, assign, and confirm every booking from one place.</p>
+    </div>
+    <div class="header-chip">{{ bookings.length }} total</div>
+  </header>
 
-  <div class="booking-form">
-    <h3>Create Booking</h3>
-    <form [formGroup]="bookingForm" (ngSubmit)="createBooking()">
-      <input formControlName="customerId" placeholder="Customer ID" />
-      <input formControlName="employeeId" placeholder="Employee ID" />
-      <input formControlName="serviceId" placeholder="Service ID" />
-      <input formControlName="locationId" placeholder="Location ID" />
-      <input formControlName="startTime" placeholder="Start Time (YYYY-MM-DDTHH:mm:ss)" />
-      <input formControlName="endTime" placeholder="End Time (YYYY-MM-DDTHH:mm:ss)" />
+  <section class="form-card">
+    <h2>{{ editingId ? 'Edit booking' : 'Create booking' }}</h2>
+    <form [formGroup]="bookingForm" (ngSubmit)="saveBooking()">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="customerId">Customer</label>
+          <select id="customerId" formControlName="customerId">
+            <option value="" disabled>Select customer</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">
+              {{ customer.name }} ({{ customer.username }})
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="employeeId">Employee</label>
+          <select id="employeeId" formControlName="employeeId">
+            <option value="" disabled>Select employee</option>
+            <option *ngFor="let employee of employees" [value]="employee.id">
+              {{ employee.name }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="serviceId">Service</label>
+          <select id="serviceId" formControlName="serviceId">
+            <option value="" disabled>Select service</option>
+            <option *ngFor="let service of services" [value]="service.id">
+              {{ service.name }} - ${{ service.price | number:'1.2-2' }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="locationId">Location</label>
+          <select id="locationId" formControlName="locationId">
+            <option value="" disabled>Select location</option>
+            <option *ngFor="let location of locations" [value]="location.id">
+              {{ location.name }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="startTime">Start time</label>
+          <input id="startTime" type="datetime-local" formControlName="startTime" />
+        </div>
+        <div class="form-field">
+          <label for="endTime">End time</label>
+          <input id="endTime" type="datetime-local" formControlName="endTime" />
+        </div>
+      </div>
+
       <div class="form-actions">
-        <button type="submit">Create Booking</button>
+        <button type="submit" class="btn-primary">{{ editingId ? 'Update booking' : 'Create booking' }}</button>
+        <button type="button" class="btn-outline" *ngIf="editingId" (click)="cancelEdit()">Cancel edit</button>
+        <span *ngIf="formError" class="form-error">{{ formError }}</span>
       </div>
     </form>
-  </div>
+  </section>
 
-  <div class="booking-list">
-    <h3>All Bookings</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Customer</th>
-          <th>Employee</th>
-          <th>Service</th>
-          <th>Location</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let b of bookings">
-          <td>{{ b.id }}</td>
-          <td>{{ b.customerName }}</td>
-          <td>{{ b.employeeName }}</td>
-          <td>{{ b.serviceName }}</td>
-          <td>{{ b.locationName }}</td>
-          <td>{{ b.startTime }}</td>
-          <td>{{ b.endTime }}</td>
-          <td>
-            <button (click)="deleteBooking(b.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <section class="list-card">
+    <div class="section-header">
+      <h2>All bookings</h2>
+      <span class="section-note">Admin view</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Employee</th>
+            <th>Service</th>
+            <th>Location</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let booking of bookings">
+            <td>#{{ booking.id }}</td>
+            <td>{{ booking.customerName }}</td>
+            <td>{{ booking.employeeName }}</td>
+            <td>{{ booking.serviceName }}</td>
+            <td>{{ booking.locationName }}</td>
+            <td>{{ booking.startTime | date:'short' }}</td>
+            <td>{{ booking.endTime | date:'short' }}</td>
+            <td class="actions">
+              <button class="btn-link" (click)="editBooking(booking)">Edit</button>
+              <button class="btn-link danger" (click)="deleteBooking(booking.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
-

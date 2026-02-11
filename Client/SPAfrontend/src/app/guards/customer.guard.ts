@@ -4,7 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { RoleViewService } from '../services/role-view.service';
 
 @Injectable({ providedIn: 'root' })
-export class EmployeeGuard implements CanActivate {
+export class CustomerGuard implements CanActivate {
   constructor(
     private auth: AuthService,
     private roleView: RoleViewService,
@@ -13,7 +13,7 @@ export class EmployeeGuard implements CanActivate {
 
   canActivate(): boolean {
     const view = this.roleView.getRoleView(this.auth.getRole(), this.auth.getUsername());
-    if (view === 'employee' || view === 'admin') {
+    if (view === 'customer' || view === 'admin') {
       return true;
     }
     this.router.navigate(['/home']);

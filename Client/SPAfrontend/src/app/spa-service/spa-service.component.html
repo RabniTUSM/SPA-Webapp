@@ -1,0 +1,74 @@
+<div class="service-admin">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Service catalog</p>
+      <h1>Spa services</h1>
+      <p class="lead">Create, price, and tag services for VIP access.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-outline" (click)="exportPdfServices()">Export PDF</button>
+    </div>
+  </header>
+
+  <section class="form-card">
+    <h2>{{ editingId ? 'Edit service' : 'Add new service' }}</h2>
+    <form [formGroup]="serviceForm" (ngSubmit)="saveService()">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="serviceName">Service name</label>
+          <input id="serviceName" formControlName="name" placeholder="Deep Tissue Massage" />
+        </div>
+        <div class="form-field">
+          <label for="servicePrice">Price</label>
+          <input id="servicePrice" type="number" min="0" step="0.01" formControlName="price" />
+        </div>
+        <div class="form-field full">
+          <label for="serviceDescription">Description</label>
+          <textarea id="serviceDescription" formControlName="description" placeholder="Describe the experience."></textarea>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="isVipOnly" />
+          VIP only service
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">{{ editingId ? 'Update service' : 'Create service' }}</button>
+        <button type="button" class="btn-outline" *ngIf="editingId" (click)="cancelEdit()">Cancel</button>
+        <span *ngIf="formError" class="form-error">{{ formError }}</span>
+      </div>
+    </form>
+  </section>
+
+  <section class="list-card">
+    <div class="section-header">
+      <h2>Service list</h2>
+      <span class="section-note">{{ services.length }} total</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>VIP Only</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let service of services">
+            <td>{{ service.name }}</td>
+            <td>{{ service.description || '-' }}</td>
+            <td>${{ service.price | number:'1.2-2' }}</td>
+            <td>{{ service.isVipOnly ? 'Yes' : 'No' }}</td>
+            <td class="actions">
+              <button class="btn-link" (click)="editService(service)">Edit</button>
+              <button class="btn-link danger" (click)="deleteService(service.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

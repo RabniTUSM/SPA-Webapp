@@ -13,6 +13,7 @@ export class AuthService {
       tap(res => {
         localStorage.setItem('spa_token', res.token);
         localStorage.setItem('spa_role', res.role);
+        localStorage.setItem('spa_username', username);
       })
     );
   }
@@ -22,6 +23,7 @@ export class AuthService {
       tap(res => {
         localStorage.setItem('spa_token', res.token);
         localStorage.setItem('spa_role', res.role);
+        localStorage.setItem('spa_username', 'guest');
       })
     );
   }
@@ -29,6 +31,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('spa_token');
     localStorage.removeItem('spa_role');
+    localStorage.removeItem('spa_username');
   }
 
   getToken(): string | null {
@@ -39,8 +42,11 @@ export class AuthService {
     return localStorage.getItem('spa_role');
   }
 
+  getUsername(): string | null {
+    return localStorage.getItem('spa_username');
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
 }
-

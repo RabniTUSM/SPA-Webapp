@@ -1,0 +1,153 @@
+<div class="customer-shell">
+  <section class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Customer Lounge</p>
+      <h1>Curate your next spa escape</h1>
+      <p class="lead">
+        Pick a service, choose the employee you trust, and lock in the location that fits your day.
+      </p>
+      <div class="hero-meta">
+        <div class="meta-card">
+          <span class="meta-label">Member</span>
+          <span class="meta-value">{{ currentUser?.name || 'Guest' }}</span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-label">Status</span>
+          <span class="meta-value">{{ vipStatus === 'approved' ? 'VIP approved' : 'Standard' }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <h2>Book in minutes</h2>
+      <p>Every reservation includes flexible scheduling and a verified employee.</p>
+      <div class="hero-chip">Free rescheduling up to 12 hours before</div>
+    </div>
+  </section>
+
+  <section class="booking-section">
+    <div class="section-header">
+      <div>
+        <h2>Book a reservation</h2>
+        <p>Choose your service, employee, and location.</p>
+      </div>
+      <div class="section-note">All times are local.</div>
+    </div>
+
+    <form class="booking-form" [formGroup]="bookingForm" (ngSubmit)="createBooking()">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Customer</label>
+          <div class="readonly-field">{{ currentUser?.name || 'Logged in customer' }}</div>
+        </div>
+        <div class="form-field">
+          <label for="serviceId">Service</label>
+          <select id="serviceId" formControlName="serviceId">
+            <option value="" disabled>Select service</option>
+            <option *ngFor="let service of services" [value]="service.id">
+              {{ service.name }} - ${{ service.price | number:'1.2-2' }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="employeeId">Preferred employee</label>
+          <select id="employeeId" formControlName="employeeId">
+            <option value="" disabled>Select employee</option>
+            <option *ngFor="let employee of employees" [value]="employee.id">
+              {{ employee.name }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="locationId">Location</label>
+          <select id="locationId" formControlName="locationId">
+            <option value="" disabled>Select location</option>
+            <option *ngFor="let location of locations" [value]="location.id">
+              {{ location.name }} - {{ location.address || 'Address available' }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="startTime">Start time</label>
+          <input id="startTime" type="datetime-local" formControlName="startTime" />
+        </div>
+        <div class="form-field">
+          <label for="endTime">End time</label>
+          <input id="endTime" type="datetime-local" formControlName="endTime" />
+        </div>
+      </div>
+
+      <input type="hidden" formControlName="customerId" />
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Confirm reservation</button>
+        <span *ngIf="formError" class="form-error">{{ formError }}</span>
+      </div>
+    </form>
+  </section>
+
+  <section class="reservations-section">
+    <div class="section-header">
+      <div>
+        <h2>My reservations</h2>
+        <p>Manage upcoming visits and cancellations.</p>
+      </div>
+      <span class="section-note">{{ myBookings.length }} reservations</span>
+    </div>
+
+    <div *ngIf="myBookings.length === 0" class="empty-state">
+      <p>No reservations yet. Book your first session above.</p>
+    </div>
+
+    <div class="reservations-grid">
+      <article *ngFor="let booking of myBookings" class="reservation-card">
+        <div>
+          <h3>{{ booking.serviceName }}</h3>
+          <p class="reservation-detail">with {{ booking.employeeName }}</p>
+        </div>
+        <div class="reservation-meta">
+          <div>
+            <span class="label">Date</span>
+            <span>{{ booking.startTime | date:'medium' }}</span>
+          </div>
+          <div>
+            <span class="label">Location</span>
+            <span>{{ booking.locationName }}</span>
+          </div>
+        </div>
+        <button class="btn-outline" (click)="cancelBooking(booking.id)">Cancel</button>
+      </article>
+    </div>
+  </section>
+
+  <section class="vip-section">
+    <div class="section-header">
+      <div>
+        <h2>Apply for VIP</h2>
+        <p>Unlock priority slots and lower prices.</p>
+      </div>
+      <span class="section-note">Reviewed by admins</span>
+    </div>
+
+    <div class="vip-card">
+      <div *ngIf="vipStatus === 'approved'" class="vip-status approved">
+        <strong>Approved</strong>
+        <p>You already have VIP access. Enjoy the upgraded experience!</p>
+      </div>
+      <div *ngIf="vipStatus === 'pending'" class="vip-status pending">
+        <strong>Pending</strong>
+        <p>Your VIP request is under review. We will notify you soon.</p>
+      </div>
+      <div *ngIf="vipStatus === 'rejected'" class="vip-status rejected">
+        <strong>Not approved</strong>
+        <p>Your last application was declined. You can reapply with more details.</p>
+      </div>
+
+      <div *ngIf="vipStatus === 'none' || vipStatus === 'rejected'" class="vip-form">
+        <label for="vipNote">Tell us why you want VIP status</label>
+        <textarea id="vipNote" [(ngModel)]="vipRequestNote" placeholder="Share your goals, preferred services, or schedule needs."></textarea>
+        <button type="button" class="btn-primary" (click)="submitVipRequest()">Submit VIP request</button>
+        <span *ngIf="vipError" class="form-error">{{ vipError }}</span>
+      </div>
+    </div>
+  </section>
+</div>

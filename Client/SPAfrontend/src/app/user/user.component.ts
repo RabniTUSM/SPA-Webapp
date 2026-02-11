@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { UserOutputDTO, UserInputDTO } from '../models/user.model';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-user',
+  standalone: true,
   templateUrl: './user.component.html',
   imports: [
+    CommonModule,
     ReactiveFormsModule
   ],
-  styleUrls: ['./user.component.css']
+  styleUrls: ['./user.component.scss']
 })
 export class UserComponent implements OnInit {
   users: UserOutputDTO[] = [];
@@ -70,4 +73,3 @@ export class UserComponent implements OnInit {
     this.userService.deleteUser(id).subscribe(() => this.loadUsers());
   }
 }
-

@@ -1,1 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=Space+Grotesk:wght@400;500;600&family=Cinzel:wght@500;700&family=Sora:wght@400;600&display=swap');
+
+:root {
+  color-scheme: light;
+  --surface-ivory: #f7f1e7;
+  --surface-sand: #efe5d6;
+  --ink-dark: #1f1a17;
+  --ink-soft: #4c4036;
+  --accent-copper: #c45d3b;
+  --accent-forest: #1f5d4b;
+  --accent-amber: #c7922b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--surface-ivory);
+  color: var(--ink-dark);
+  font-family: 'Sora', 'Trebuchet MS', sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

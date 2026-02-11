@@ -1,76 +1,185 @@
-<div class="admin-container">
-  <h1>Admin Dashboard</h1>
+<div class="admin-shell">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin control room</p>
+      <h1>Operations dashboard</h1>
+      <p class="lead">Own roles, approvals, and system visibility.</p>
+    </div>
+    <div class="stats">
+      <div>
+        <span class="label">Roles</span>
+        <strong>{{ roles.length }}</strong>
+      </div>
+      <div>
+        <span class="label">Users</span>
+        <strong>{{ users.length }}</strong>
+      </div>
+      <div>
+        <span class="label">VIP requests</span>
+        <strong>{{ vipRequests.length }}</strong>
+      </div>
+    </div>
+  </header>
+
+  <div class="quick-actions">
+    <button class="btn-outline" (click)="navigate('/bookings')">Manage bookings</button>
+    <button class="btn-outline" (click)="navigate('/services')">Manage services</button>
+    <button class="btn-outline" (click)="navigate('/locations')">Manage locations</button>
+    <button class="btn-outline" (click)="navigate('/users')">Manage users</button>
+  </div>
 
   <div class="tab-menu">
-    <button [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'">Manage Roles</button>
-    <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Manage Users</button>
+    <button [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'">Roles & Views</button>
+    <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">User Overview</button>
+    <button [class.active]="activeTab === 'vip'" (click)="activeTab = 'vip'">VIP Requests</button>
+    <button [class.active]="activeTab === 'admins'" (click)="activeTab = 'admins'">Create Admin</button>
   </div>
 
-  <!-- Roles Tab -->
-  <div *ngIf="activeTab === 'roles'" class="tab-content">
-    <h2>Roles Management</h2>
-    <button (click)="toggleRoleForm()" class="btn-add">{{ showRoleForm ? 'Cancel' : 'Add New Role' }}</button>
+  <section *ngIf="activeTab === 'roles'" class="tab-content">
+    <div class="section-header">
+      <h2>Role management</h2>
+      <button (click)="toggleRoleForm()" class="btn-primary">
+        {{ showRoleForm ? 'Cancel' : 'Add new role' }}
+      </button>
+    </div>
 
     <form *ngIf="showRoleForm" [formGroup]="roleForm" (ngSubmit)="saveRole()" class="form-section">
-      <input formControlName="name" placeholder="Role Name" required />
-      <label>
-        <input type="checkbox" formControlName="hasAdminAccess" />
-        Has Admin Access
-      </label>
-      <textarea formControlName="description" placeholder="Description"></textarea>
-      <button type="submit">{{ editingRoleId ? 'Update' : 'Create' }} Role</button>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Role name</label>
+          <input formControlName="name" placeholder="CUSTOMER_PLUS" />
+        </div>
+        <div class="form-field">
+          <label>Role view</label>
+          <select formControlName="viewType">
+            <option *ngFor="let view of roleViewOptions" [value]="view">
+              {{ view }} look
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <textarea formControlName="description" placeholder="Short role description"></textarea>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="hasAdminAccess" />
+          Has admin access
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">{{ editingRoleId ? 'Update' : 'Create' }} role</button>
+        <span *ngIf="roleFormError" class="form-error">{{ roleFormError }}</span>
+      </div>
     </form>
 
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Admin Access</th>
-          <th>Description</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let role of roles">
-          <td>{{ role.name }}</td>
-          <td>{{ role.hasAdminAccess ? 'Yes' : 'No' }}</td>
-          <td>{{ role.description || 'N/A' }}</td>
-          <td>
-            <button (click)="editRole(role)" class="btn-edit">Edit</button>
-            <button (click)="deleteRole(role.id)" class="btn-delete">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Admin Access</th>
+            <th>Description</th>
+            <th>Assigned View</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let role of roles">
+            <td>{{ role.name }}</td>
+            <td>{{ role.hasAdminAccess ? 'Yes' : 'No' }}</td>
+            <td>{{ role.description || 'N/A' }}</td>
+            <td>
+              <select [value]="getViewForRole(role.name)" (change)="updateRoleView(role, $any($event.target).value)">
+                <option *ngFor="let view of roleViewOptions" [value]="view">{{ view }}</option>
+              </select>
+            </td>
+            <td class="actions">
+              <button (click)="editRole(role)" class="btn-link">Edit</button>
+              <button (click)="deleteRole(role.id)" class="btn-link danger">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-  <!-- Users Tab -->
-  <div *ngIf="activeTab === 'users'" class="tab-content">
-    <h2>Users Management</h2>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>VIP</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users">
-          <td>{{ user.username }}</td>
-          <td>{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
-          <td>{{ user.vipMember ? 'Yes' : 'No' }}</td>
-          <td>
-            <button (click)="deleteUser(user.id)" class="btn-delete">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <section *ngIf="activeTab === 'users'" class="tab-content">
+    <h2>User overview</h2>
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>VIP</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.username }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.vipMember ? 'Yes' : 'No' }}</td>
+            <td class="actions">
+              <button (click)="deleteUser(user.id)" class="btn-link danger">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="activeTab === 'vip'" class="tab-content">
+    <h2>VIP requests</h2>
+    <div *ngIf="vipRequests.length === 0" class="empty-state">
+      <p>No pending VIP requests.</p>
+    </div>
+    <div class="vip-grid">
+      <article *ngFor="let request of vipRequests" class="vip-card">
+        <h3>{{ request.name }}</h3>
+        <p class="vip-meta">@{{ request.username }} - {{ request.requestedAt | date:'medium' }}</p>
+        <p class="vip-note">{{ request.message }}</p>
+        <div class="vip-actions">
+          <button class="btn-primary" (click)="approveVip(request)">Approve</button>
+          <button class="btn-outline" (click)="rejectVip(request)">Reject</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section *ngIf="activeTab === 'admins'" class="tab-content">
+    <h2>Create new admin</h2>
+    <form [formGroup]="adminForm" (ngSubmit)="createAdmin()" class="form-section">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Username</label>
+          <input formControlName="username" placeholder="admin.user" />
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" formControlName="password" placeholder="********" />
+        </div>
+        <div class="form-field">
+          <label>Name</label>
+          <input formControlName="name" placeholder="Admin Name" />
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input formControlName="email" placeholder="admin@email.com" />
+        </div>
+        <div class="form-field">
+          <label>Phone</label>
+          <input formControlName="phone" placeholder="+1 555 0100" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Create admin</button>
+        <span *ngIf="adminFormError" class="form-error">{{ adminFormError }}</span>
+      </div>
+    </form>
+  </section>
 </div>
-

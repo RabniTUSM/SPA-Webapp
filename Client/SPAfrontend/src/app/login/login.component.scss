@@ -1,0 +1,136 @@
+:host {
+  display: block;
+  font-family: 'Space Grotesk', 'Trebuchet MS', sans-serif;
+  color: #241e1a;
+}
+
+.login-shell {
+  max-width: 1100px;
+  margin: 40px auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.login-hero {
+  background: radial-gradient(circle at top left, #fef6eb, #f3e3cf 60%, #e8d3ba 100%);
+  padding: 36px;
+  border-radius: 28px;
+  box-shadow: 0 24px 60px rgba(79, 55, 31, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-hero::after {
+  content: '';
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -80px;
+  bottom: -80px;
+  background: radial-gradient(circle, rgba(196, 93, 59, 0.3), transparent 70%);
+}
+
+.eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: #9a6b40;
+}
+
+.login-hero h1 {
+  font-family: 'Fraunces', 'Times New Roman', serif;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  margin: 12px 0 16px;
+}
+
+.lead {
+  margin: 0 0 20px;
+  color: #4c3d32;
+  font-size: 1.05rem;
+}
+
+.role-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.role-list span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.login-card {
+  background: #fffaf2;
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 18px 45px rgba(70, 48, 28, 0.15);
+  display: grid;
+  gap: 16px;
+}
+
+.login-card h2 {
+  margin: 0;
+  font-family: 'Fraunces', 'Times New Roman', serif;
+}
+
+form {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #7b5c43;
+  display: grid;
+  gap: 6px;
+}
+
+input {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(112, 84, 60, 0.25);
+  background: #fffdf9;
+}
+
+.btn-primary {
+  background: linear-gradient(120deg, #c45d3b, #d9923f);
+  color: #fff6ec;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(124, 90, 65, 0.2);
+}
+
+.btn-guest {
+  border: 1px solid rgba(124, 90, 65, 0.3);
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error {
+  color: #b0462a;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+}

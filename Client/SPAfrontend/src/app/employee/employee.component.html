@@ -1,32 +1,54 @@
-<div class="employee-container">
-  <h1>My Bookings</h1>
+<div class="employee-shell">
+  <header class="employee-header">
+    <div>
+      <p class="eyebrow">Employee Schedule</p>
+      <h1>Today's service lineup</h1>
+      <p class="lead">Stay ahead of your appointments and prep every room with confidence.</p>
+    </div>
+    <div class="employee-meta">
+      <div>
+        <span class="label">Employee</span>
+        <strong>{{ employeeName || 'Team member' }}</strong>
+      </div>
+      <div>
+        <span class="label">View</span>
+        <strong>{{ filterType === 'upcoming' ? 'Upcoming only' : 'All bookings' }}</strong>
+      </div>
+    </div>
+  </header>
 
   <div class="filter-section">
     <label>
       <input type="radio" name="filter" value="upcoming" [(ngModel)]="filterType" (change)="onFilterChange()" />
-      Upcoming Only
+      Upcoming only
     </label>
     <label>
       <input type="radio" name="filter" value="all" [(ngModel)]="filterType" (change)="onFilterChange()" />
-      All Bookings
+      All bookings
     </label>
   </div>
 
-  <div *ngIf="upcomingBookings.length === 0" class="no-bookings">
-    <p>No bookings found</p>
+  <div *ngIf="groupedBookings.length === 0" class="no-bookings">
+    <p>No bookings found for this schedule.</p>
   </div>
 
-  <div class="bookings-grid">
-    <div *ngFor="let booking of upcomingBookings" class="booking-card">
-      <h3>{{ booking.serviceName }}</h3>
-      <p><strong>Customer:</strong> {{ booking.customerName }}</p>
-      <p><strong>Location:</strong> {{ booking.locationName }}</p>
-      <p><strong>Start Time:</strong> {{ booking.startTime | date:'short' }}</p>
-      <p><strong>End Time:</strong> {{ booking.endTime | date:'short' }}</p>
-      <p *ngIf="filterType === 'upcoming'" class="time-remaining">
-        <strong>Time Remaining:</strong> {{ getTimeRemaining(booking.startTime) }}
-      </p>
-    </div>
+  <div class="schedule">
+    <section *ngFor="let group of groupedBookings" class="day-group">
+      <h2>{{ group.dayLabel }}</h2>
+      <div class="bookings-grid">
+        <article *ngFor="let booking of group.bookings" class="booking-card">
+          <div class="card-header">
+            <h3>{{ booking.serviceName }}</h3>
+            <span class="time-chip">{{ booking.startTime | date:'shortTime' }}</span>
+          </div>
+          <p><strong>Customer:</strong> {{ booking.customerName }}</p>
+          <p><strong>Location:</strong> {{ booking.locationName }}</p>
+          <p><strong>Window:</strong> {{ booking.startTime | date:'short' }} - {{ booking.endTime | date:'shortTime' }}</p>
+          <p *ngIf="filterType === 'upcoming'" class="time-remaining">
+            <strong>Time remaining:</strong> {{ getTimeRemaining(booking.startTime) }}
+          </p>
+        </article>
+      </div>
+    </section>
   </div>
 </div>
-

@@ -1,11 +1,33 @@
-<div class="login-container">
-  <h1>SPA Management System</h1>
-  <form [formGroup]="loginForm" (ngSubmit)="login()">
-    <h2>Login</h2>
-    <input formControlName="username" placeholder="Username" required />
-    <input formControlName="password" placeholder="Password" required type="password" />
-    <button type="submit" class="btn-login">Login</button>
-    <div *ngIf="error" class="error">{{ error }}</div>
-  </form>
-  <button (click)="guestLogin()" class="btn-guest">Continue as Guest</button>
+<div class="login-shell">
+  <section class="login-hero">
+    <p class="eyebrow">Spa Suite</p>
+    <h1>One platform for every role</h1>
+    <p class="lead">
+      Customers manage reservations, employees track schedules, and admins orchestrate the full experience.
+    </p>
+    <div class="role-list">
+      <span>Customer</span>
+      <span>VIP Customer</span>
+      <span>Employee</span>
+      <span>Admin</span>
+    </div>
+  </section>
+
+  <section class="login-card">
+    <h2>Sign in</h2>
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+      <label>
+        Username
+        <input formControlName="username" placeholder="your username" required />
+      </label>
+      <label>
+        Password
+        <input formControlName="password" placeholder="password" required type="password" />
+      </label>
+      <button type="submit" class="btn-primary">Sign in</button>
+      <div *ngIf="error" class="error">{{ error }}</div>
+    </form>
+    <div class="divider"></div>
+    <button (click)="guestLogin()" class="btn-guest">Continue as guest</button>
+  </section>
 </div>

@@ -1,49 +1,121 @@
-<div class="vip-container">
-  <div class="vip-header">
-    <h1>✨ VIP Exclusive Services ✨</h1>
-    <p class="vip-subtitle">Enjoy 20% VIP Discount on All Services</p>
-    <button (click)="exportPdfServices()" class="btn-export">📄 Download Services List (PDF)</button>
-  </div>
-
-  <div class="services-grid">
-    <div *ngFor="let service of services" class="service-card-vip">
-      <div class="service-header">
-        <h3>{{ service.name }}</h3>
-        <span class="vip-badge">VIP</span>
+<div class="vip-shell">
+  <section class="vip-hero">
+    <div class="vip-intro">
+      <span class="vip-tag">VIP Atelier</span>
+      <h1>Private spa access, curated for you</h1>
+      <p class="vip-lead">
+        Enjoy priority booking, premium locations, and a standing 20% VIP discount.
+      </p>
+      <div class="vip-meta">
+        <div>
+          <span class="label">Member</span>
+          <strong>{{ currentUser?.name || 'VIP Guest' }}</strong>
+        </div>
+        <div>
+          <span class="label">Discount</span>
+          <strong>{{ discountPercentage }}% off</strong>
+        </div>
       </div>
-      <p class="description">{{ service.description }}</p>
+      <button (click)="exportPdfServices()" class="btn-outline">Download VIP menu</button>
+    </div>
 
-      <div class="pricing">
-        <div class="price-row">
-          <span class="label">Regular Price:</span>
-          <span class="original-price">${{ service.price | number:'1.2-2' }}</span>
+    <div class="vip-panel">
+      <h2>Book a VIP reservation</h2>
+      <p>Choose the employee and location that match your mood.</p>
+      <form [formGroup]="bookingForm" (ngSubmit)="bookService()">
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="vipService">Service</label>
+            <select id="vipService" formControlName="serviceId">
+              <option value="" disabled>Select service</option>
+              <option *ngFor="let service of services" [value]="service.id">
+                {{ service.name }} - ${{ getVipPrice(service.price) | number:'1.2-2' }}
+              </option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="vipEmployee">Preferred employee</label>
+            <select id="vipEmployee" formControlName="employeeId">
+              <option value="" disabled>Select employee</option>
+              <option *ngFor="let employee of employees" [value]="employee.id">
+                {{ employee.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="vipLocation">Location</label>
+            <select id="vipLocation" formControlName="locationId">
+              <option value="" disabled>Select location</option>
+              <option *ngFor="let location of locations" [value]="location.id">
+                {{ location.name }} - {{ location.address || 'Location info' }}
+              </option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="vipStart">Start time</label>
+            <input id="vipStart" type="datetime-local" formControlName="startTime" />
+          </div>
+          <div class="form-field">
+            <label for="vipEnd">End time</label>
+            <input id="vipEnd" type="datetime-local" formControlName="endTime" />
+          </div>
         </div>
-        <div class="price-row">
-          <span class="label">VIP Price:</span>
+
+        <input type="hidden" formControlName="customerId" />
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Reserve VIP slot</button>
+          <span *ngIf="formError" class="form-error">{{ formError }}</span>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="vip-services">
+    <div class="section-header">
+      <div>
+        <h2>VIP services</h2>
+        <p>All services include member pricing.</p>
+      </div>
+      <span class="section-note">{{ services.length }} services</span>
+    </div>
+
+    <div class="services-grid">
+      <article *ngFor="let service of services" class="service-card">
+        <div class="service-header">
+          <h3>{{ service.name }}</h3>
+          <span class="badge">VIP</span>
+        </div>
+        <p>{{ service.description }}</p>
+        <div class="price-stack">
+          <span class="original">${{ service.price | number:'1.2-2' }}</span>
           <span class="vip-price">${{ getVipPrice(service.price) | number:'1.2-2' }}</span>
-        </div>
-        <div class="savings-row">
           <span class="savings">Save ${{ getSavings(service.price) | number:'1.2-2' }}</span>
         </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="vip-bookings">
+    <div class="section-header">
+      <div>
+        <h2>My reservations</h2>
+        <p>Your upcoming VIP bookings.</p>
       </div>
-
-      <button class="btn-book">Book Now</button>
+      <span class="section-note">{{ myBookings.length }} reserved</span>
     </div>
-  </div>
 
-  <div class="my-bookings-section">
-    <h2>My Reservations</h2>
-    <div *ngIf="myBookings.length === 0" class="no-bookings">
-      <p>No active reservations</p>
+    <div *ngIf="myBookings.length === 0" class="empty-state">
+      <p>No VIP reservations yet.</p>
     </div>
+
     <div class="bookings-grid">
-      <div *ngFor="let booking of myBookings" class="booking-card-vip">
+      <article *ngFor="let booking of myBookings" class="booking-card">
         <h4>{{ booking.serviceName }}</h4>
-        <p><strong>Date:</strong> {{ booking.startTime | date:'short' }}</p>
-        <p><strong>Location:</strong> {{ booking.locationName }}</p>
-        <button (click)="cancelBooking(booking.id)" class="btn-cancel">Cancel Reservation</button>
-      </div>
+        <p class="booking-detail">{{ booking.startTime | date:'medium' }}</p>
+        <p class="booking-detail">{{ booking.locationName }}</p>
+        <button class="btn-outline" (click)="cancelBooking(booking.id)">Cancel</button>
+      </article>
     </div>
-  </div>
+  </section>
 </div>
-

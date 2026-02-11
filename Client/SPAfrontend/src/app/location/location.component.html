@@ -1,0 +1,64 @@
+<div class="location-admin">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Locations</p>
+      <h1>Manage spa locations</h1>
+      <p class="lead">Control addresses and VIP availability.</p>
+    </div>
+    <div class="header-chip">{{ locations.length }} locations</div>
+  </header>
+
+  <section class="form-card">
+    <h2>{{ editingId ? 'Edit location' : 'Add new location' }}</h2>
+    <form [formGroup]="locationForm" (ngSubmit)="saveLocation()">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="locationName">Location name</label>
+          <input id="locationName" formControlName="name" placeholder="Downtown Retreat" />
+        </div>
+        <div class="form-field">
+          <label for="locationAddress">Address</label>
+          <input id="locationAddress" formControlName="address" placeholder="123 Spa Avenue" />
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="vipServiceAvailable" />
+          VIP services available
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">{{ editingId ? 'Update location' : 'Create location' }}</button>
+        <button type="button" class="btn-outline" *ngIf="editingId" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="list-card">
+    <div class="section-header">
+      <h2>Current locations</h2>
+      <span class="section-note">Admin view</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>VIP Ready</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let location of locations">
+            <td>{{ location.name }}</td>
+            <td>{{ location.address || 'Address pending' }}</td>
+            <td>{{ location.vipServiceAvailable ? 'Yes' : 'No' }}</td>
+            <td class="actions">
+              <button class="btn-link" (click)="editLocation(location)">Edit</button>
+              <button class="btn-link danger" (click)="deleteLocation(location.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { LocationService } from '../services/location.service';
 import { LocationInputDTO, LocationOutputDTO } from '../models/location.model';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-location',
+  standalone: true,
   templateUrl: './location.component.html',
-  styleUrls: ['./location.component.css']
+  imports: [CommonModule, ReactiveFormsModule],
+  styleUrls: ['./location.component.scss']
 })
 export class LocationComponent implements OnInit {
   locations: LocationOutputDTO[] = [];
@@ -60,4 +63,3 @@ export class LocationComponent implements OnInit {
     this.locationService.deleteLocation(id).subscribe(() => this.loadLocations());
   }
 }
-
