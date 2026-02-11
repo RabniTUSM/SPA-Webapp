@@ -1,0 +1,11 @@
+<div class="login-container">
+  <h1>SPA Management System</h1>
+  <form [formGroup]="loginForm" (ngSubmit)="login()">
+    <h2>Login</h2>
+    <input formControlName="username" placeholder="Username" required />
+    <input formControlName="password" placeholder="Password" required type="password" />
+    <button type="submit" class="btn-login">Login</button>
+    <div *ngIf="error" class="error">{{ error }}</div>
+  </form>
+  <button (click)="guestLogin()" class="btn-guest">Continue as Guest</button>
+</div>

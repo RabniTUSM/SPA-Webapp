@@ -1,0 +1,51 @@
+<div class="booking-page">
+  <h1>Bookings</h1>
+
+  <div class="booking-form">
+    <h3>Create Booking</h3>
+    <form [formGroup]="bookingForm" (ngSubmit)="createBooking()">
+      <input formControlName="customerId" placeholder="Customer ID" />
+      <input formControlName="employeeId" placeholder="Employee ID" />
+      <input formControlName="serviceId" placeholder="Service ID" />
+      <input formControlName="locationId" placeholder="Location ID" />
+      <input formControlName="startTime" placeholder="Start Time (YYYY-MM-DDTHH:mm:ss)" />
+      <input formControlName="endTime" placeholder="End Time (YYYY-MM-DDTHH:mm:ss)" />
+      <div class="form-actions">
+        <button type="submit">Create Booking</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="booking-list">
+    <h3>All Bookings</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Employee</th>
+          <th>Service</th>
+          <th>Location</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let b of bookings">
+          <td>{{ b.id }}</td>
+          <td>{{ b.customerName }}</td>
+          <td>{{ b.employeeName }}</td>
+          <td>{{ b.serviceName }}</td>
+          <td>{{ b.locationName }}</td>
+          <td>{{ b.startTime }}</td>
+          <td>{{ b.endTime }}</td>
+          <td>
+            <button (click)="deleteBooking(b.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

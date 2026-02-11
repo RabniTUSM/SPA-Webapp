@@ -1,22 +1,17 @@
-package spge.spa.Models;
+package spge.spa.DTOs;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "roles")
-public class Role {
-    @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+public class RoleOutputDTO {
     private Long id;
-    @Column(nullable = false, unique = true)
     private String name;
-    @Column(nullable = false)
-    private boolean hasAdminAccess = false;
-    @Column
+    private boolean hasAdminAccess;
     private String description;
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -43,3 +38,4 @@ public class Role {
         this.description = description;
     }
 }
+

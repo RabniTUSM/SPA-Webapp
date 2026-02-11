@@ -1,38 +1,33 @@
-package spge.spa.Models;
+package spge.spa.DTOs;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "locations")
-public class Location {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class LocationOutputDTO {
     private Long id;
-    @Column(nullable = false)
     private String name;
-    @Column
     private String address;
-    @Column(nullable = false)
     private Boolean vipServiceAvailable;
 
     public Long getId() {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
 
-    public void setName(String locationName) {
-        this.name = locationName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getAddress() {
         return address;
     }
 
-    public void setAddress(String locationAddress) {
-        this.address = locationAddress;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public Boolean getVipServiceAvailable() {
@@ -43,3 +38,4 @@ public class Location {
         this.vipServiceAvailable = vipServiceAvailable;
     }
 }
+

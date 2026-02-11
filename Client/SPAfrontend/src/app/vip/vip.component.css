@@ -1,0 +1,207 @@
+.vip-container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.vip-header {
+  text-align: center;
+  color: #ffd700;
+  margin-bottom: 50px;
+}
+
+.vip-header h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.vip-subtitle {
+  font-size: 20px;
+  color: #bdbdbd;
+  margin-bottom: 20px;
+}
+
+.btn-export {
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-export:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto 50px;
+}
+
+.service-card-vip {
+  background: linear-gradient(135deg, #2d3561 0%, #1a1a2e 100%);
+  border: 2px solid #ffd700;
+  border-radius: 15px;
+  padding: 25px;
+  color: white;
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+  transition: all 0.3s;
+  position: relative;
+}
+
+.service-card-vip:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(255, 215, 0, 0.3);
+  border-color: #ffed4e;
+}
+
+.service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.service-header h3 {
+  font-size: 22px;
+  color: #ffd700;
+  margin: 0;
+}
+
+.vip-badge {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.description {
+  color: #bdbdbd;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.pricing {
+  background: rgba(255, 215, 0, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.label {
+  color: #bdbdbd;
+}
+
+.original-price {
+  color: #ff6b6b;
+  text-decoration: line-through;
+}
+
+.vip-price {
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.savings-row {
+  text-align: center;
+  color: #4CAF50;
+  font-weight: bold;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.btn-book {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-book:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.my-bookings-section {
+  max-width: 1400px;
+  margin: 50px auto;
+}
+
+.my-bookings-section h2 {
+  color: #ffd700;
+  font-size: 32px;
+  text-align: center;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.no-bookings {
+  text-align: center;
+  color: #bdbdbd;
+  padding: 40px;
+  font-size: 18px;
+}
+
+.bookings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.booking-card-vip {
+  background: linear-gradient(135deg, #2d3561 0%, #1a1a2e 100%);
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+}
+
+.booking-card-vip h4 {
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+.booking-card-vip p {
+  color: #bdbdbd;
+  margin: 8px 0;
+}
+
+.btn-cancel {
+  width: 100%;
+  padding: 10px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.btn-cancel:hover {
+  background-color: #ff5252;
+}
+

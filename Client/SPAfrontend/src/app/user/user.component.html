@@ -1,0 +1,48 @@
+<div class="user-page">
+  <h1>Users</h1>
+
+  <div class="user-form">
+    <h3>{{ editingId ? 'Edit User' : 'Create User' }}</h3>
+    <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+      <input formControlName="username" placeholder="Username" />
+      <input formControlName="password" placeholder="Password" type="password" />
+      <input formControlName="name" placeholder="Full name" />
+      <input formControlName="email" placeholder="Email" />
+      <input formControlName="phone" placeholder="Phone" />
+      <div class="form-actions">
+        <button type="submit">{{ editingId ? 'Update' : 'Create' }}</button>
+        <button type="button" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="user-list">
+    <h3>All users</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of users">
+          <td>{{ u.username }}</td>
+          <td>{{ u.name }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.phone }}</td>
+          <td>{{ u.role }}</td>
+          <td>
+            <button (click)="editUser(u)">Edit</button>
+            <button (click)="deleteUser(u.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

@@ -1,5 +1,7 @@
 package spge.spa.Services;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import spge.spa.DTOs.AdminUserInputDTO;
 import spge.spa.DTOs.CreateAdminDTO;
@@ -15,6 +17,7 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
     public UserService(UserRepository userRepository, UserMapper userMapper) {
@@ -29,6 +32,7 @@ public class UserService {
         else
         {
             var user = userMapper.UserDTOtoUser(dto);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
         }
     }
@@ -53,6 +57,7 @@ public class UserService {
     public void createAdmin(CreateAdminDTO dto){
         if(dto!=null){
             var user = userMapper.CreateAdmin(dto);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
         }
     }
@@ -79,7 +84,10 @@ public class UserService {
         if(dto!=null){
             var existingUser = userRepository.findByUsername(dto.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            existingUser = userMapper.UserDTOtoUser(dto);
+            userMapper.updateUserFromDTO(existingUser, dto);
+            if(dto.getPassword()!=null){
+                existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+            }
             userRepository.save(existingUser);
         }
         else{

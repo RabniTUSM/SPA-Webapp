@@ -1,0 +1,76 @@
+<div class="admin-container">
+  <h1>Admin Dashboard</h1>
+
+  <div class="tab-menu">
+    <button [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'">Manage Roles</button>
+    <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Manage Users</button>
+  </div>
+
+  <!-- Roles Tab -->
+  <div *ngIf="activeTab === 'roles'" class="tab-content">
+    <h2>Roles Management</h2>
+    <button (click)="toggleRoleForm()" class="btn-add">{{ showRoleForm ? 'Cancel' : 'Add New Role' }}</button>
+
+    <form *ngIf="showRoleForm" [formGroup]="roleForm" (ngSubmit)="saveRole()" class="form-section">
+      <input formControlName="name" placeholder="Role Name" required />
+      <label>
+        <input type="checkbox" formControlName="hasAdminAccess" />
+        Has Admin Access
+      </label>
+      <textarea formControlName="description" placeholder="Description"></textarea>
+      <button type="submit">{{ editingRoleId ? 'Update' : 'Create' }} Role</button>
+    </form>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Admin Access</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let role of roles">
+          <td>{{ role.name }}</td>
+          <td>{{ role.hasAdminAccess ? 'Yes' : 'No' }}</td>
+          <td>{{ role.description || 'N/A' }}</td>
+          <td>
+            <button (click)="editRole(role)" class="btn-edit">Edit</button>
+            <button (click)="deleteRole(role.id)" class="btn-delete">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Users Tab -->
+  <div *ngIf="activeTab === 'users'" class="tab-content">
+    <h2>Users Management</h2>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>VIP</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.username }}</td>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>{{ user.vipMember ? 'Yes' : 'No' }}</td>
+          <td>
+            <button (click)="deleteUser(user.id)" class="btn-delete">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

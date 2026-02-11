@@ -1,0 +1,49 @@
+<div class="vip-container">
+  <div class="vip-header">
+    <h1>✨ VIP Exclusive Services ✨</h1>
+    <p class="vip-subtitle">Enjoy 20% VIP Discount on All Services</p>
+    <button (click)="exportPdfServices()" class="btn-export">📄 Download Services List (PDF)</button>
+  </div>
+
+  <div class="services-grid">
+    <div *ngFor="let service of services" class="service-card-vip">
+      <div class="service-header">
+        <h3>{{ service.name }}</h3>
+        <span class="vip-badge">VIP</span>
+      </div>
+      <p class="description">{{ service.description }}</p>
+
+      <div class="pricing">
+        <div class="price-row">
+          <span class="label">Regular Price:</span>
+          <span class="original-price">${{ service.price | number:'1.2-2' }}</span>
+        </div>
+        <div class="price-row">
+          <span class="label">VIP Price:</span>
+          <span class="vip-price">${{ getVipPrice(service.price) | number:'1.2-2' }}</span>
+        </div>
+        <div class="savings-row">
+          <span class="savings">Save ${{ getSavings(service.price) | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <button class="btn-book">Book Now</button>
+    </div>
+  </div>
+
+  <div class="my-bookings-section">
+    <h2>My Reservations</h2>
+    <div *ngIf="myBookings.length === 0" class="no-bookings">
+      <p>No active reservations</p>
+    </div>
+    <div class="bookings-grid">
+      <div *ngFor="let booking of myBookings" class="booking-card-vip">
+        <h4>{{ booking.serviceName }}</h4>
+        <p><strong>Date:</strong> {{ booking.startTime | date:'short' }}</p>
+        <p><strong>Location:</strong> {{ booking.locationName }}</p>
+        <button (click)="cancelBooking(booking.id)" class="btn-cancel">Cancel Reservation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
