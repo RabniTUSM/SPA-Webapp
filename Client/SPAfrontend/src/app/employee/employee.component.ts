@@ -5,6 +5,8 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
+import { TranslatePipe } from '../pipes/t.pipe';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-employee',
@@ -13,7 +15,8 @@ import { UserService } from '../services/user.service';
   imports: [
     CommonModule,
     FormsModule,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   styleUrls: ['./employee.component.scss']
 })
@@ -27,7 +30,8 @@ export class EmployeeComponent implements OnInit {
   constructor(
     private bookingService: BookingService,
     private auth: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private language: LanguageService
   ) {}
 
   ngOnInit() {
@@ -60,7 +64,7 @@ export class EmployeeComponent implements OnInit {
     const now = new Date();
     const scoped = this.employeeName
       ? this.allBookings.filter(b => b.employeeName === this.employeeName)
-      : this.allBookings;
+      : [];
     const filtered = this.filterType === 'upcoming'
       ? scoped.filter(b => new Date(b.startTime) > now)
       : scoped;
@@ -94,7 +98,9 @@ export class EmployeeComponent implements OnInit {
       groups.get(key)?.push(booking);
     });
     return Array.from(groups.entries()).map(([key, values]) => ({
-      dayLabel: new Date(`${key}T00:00:00`).toLocaleDateString(undefined, {
+      dayLabel: new Date(`${key}T00:00:00`).toLocaleDateString(
+        this.language.currentLanguage === 'bg' ? 'bg-BG' : 'en-US',
+        {
         weekday: 'long',
         month: 'short',
         day: 'numeric'

@@ -2,16 +2,19 @@ package spge.spa.Security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
 public class JwtUtil {
-    private final String SECRET_KEY = "spa_secret_key";
+    private static final String SECRET_KEY = "spa_secret_key_for_hs256_must_be_at_least_32_bytes";
+    private final SecretKey signingKey = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     private final long EXPIRATION_MS = 86400000; // 24 hours
 
     public String generateToken(String username, String role) {
@@ -22,7 +25,7 @@ public class JwtUtil {
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(signingKey)
                 .compact();
     }
 
@@ -39,8 +42,9 @@ public class JwtUtil {
     }
 
     private Claims getClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+        return Jwts.parserBuilder()
+                .setSigningKey(signingKey)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -49,4 +53,3 @@ public class JwtUtil {
         return getClaims(token).getExpiration().before(new Date());
     }
 }
-

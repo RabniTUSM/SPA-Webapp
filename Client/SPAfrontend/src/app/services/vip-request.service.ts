@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { RoleViewService } from './role-view.service';
+
+const VIP_REQUESTS_KEY = 'aurelia-vip-requests';
 
 export interface VipRequest {
   id: string;
@@ -12,21 +13,13 @@ export interface VipRequest {
 
 @Injectable({ providedIn: 'root' })
 export class VipRequestService {
-  private storageKey = 'spa_vip_requests';
+  private requests: VipRequest[] = [];
 
-  constructor(private roleView: RoleViewService) {}
+  constructor() {
+    this.restoreRequests();
+  }
 
   submitRequest(username: string, name: string, message: string): VipRequest {
-    if (!this.hasStorage()) {
-      return {
-        id: `${username}-${Date.now()}`,
-        username,
-        name,
-        message,
-        requestedAt: new Date().toISOString(),
-        status: 'pending'
-      };
-    }
     const request: VipRequest = {
       id: `${username}-${Date.now()}`,
       username,
@@ -35,25 +28,13 @@ export class VipRequestService {
       requestedAt: new Date().toISOString(),
       status: 'pending'
     };
-    const requests = this.getRequests();
-    requests.unshift(request);
-    this.saveRequests(requests);
+    this.requests.unshift(request);
+    this.persistRequests();
     return request;
   }
 
   getRequests(): VipRequest[] {
-    if (!this.hasStorage()) {
-      return [];
-    }
-    const raw = localStorage.getItem(this.storageKey);
-    if (!raw) {
-      return [];
-    }
-    try {
-      return JSON.parse(raw) as VipRequest[];
-    } catch {
-      return [];
-    }
+    return [...this.requests];
   }
 
   getPendingRequests(): VipRequest[] {
@@ -61,42 +42,45 @@ export class VipRequestService {
   }
 
   approveRequest(id: string): VipRequest | null {
-    if (!this.hasStorage()) {
-      return null;
-    }
-    const requests = this.getRequests();
-    const request = requests.find(item => item.id === id);
+    const request = this.requests.find(item => item.id === id);
     if (!request) {
       return null;
     }
     request.status = 'approved';
-    this.roleView.approveVip(request.username);
-    this.saveRequests(requests);
+    this.persistRequests();
     return request;
   }
 
   rejectRequest(id: string): VipRequest | null {
-    if (!this.hasStorage()) {
-      return null;
-    }
-    const requests = this.getRequests();
-    const request = requests.find(item => item.id === id);
+    const request = this.requests.find(item => item.id === id);
     if (!request) {
       return null;
     }
     request.status = 'rejected';
-    this.saveRequests(requests);
+    this.persistRequests();
     return request;
   }
 
-  private saveRequests(requests: VipRequest[]): void {
-    if (!this.hasStorage()) {
+  private restoreRequests(): void {
+    if (typeof window === 'undefined') {
       return;
     }
-    localStorage.setItem(this.storageKey, JSON.stringify(requests));
+    try {
+      const stored = window.localStorage.getItem(VIP_REQUESTS_KEY);
+      if (!stored) {
+        return;
+      }
+      const parsed = JSON.parse(stored) as VipRequest[];
+      this.requests = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      this.requests = [];
+    }
   }
 
-  private hasStorage(): boolean {
-    return typeof localStorage !== 'undefined';
+  private persistRequests(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem(VIP_REQUESTS_KEY, JSON.stringify(this.requests));
   }
 }

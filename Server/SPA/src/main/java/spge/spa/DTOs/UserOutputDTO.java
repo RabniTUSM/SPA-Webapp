@@ -6,7 +6,6 @@ public class UserOutputDTO {
     private String name;
     private String email;
     private String phone;
-    private boolean isVipMember;
     private String role;
 
     public Long getId() {
@@ -47,14 +46,6 @@ public class UserOutputDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public boolean isVipMember() {
-        return isVipMember;
-    }
-
-    public void setVipMember(boolean vipMember) {
-        isVipMember = vipMember;
     }
 
     public String getRole() {

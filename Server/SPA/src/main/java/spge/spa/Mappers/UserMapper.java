@@ -42,13 +42,10 @@ public class UserMapper {
     public User AdminDTOtoUser(AdminUserInputDTO dto, User user) {
         if(dto!=null) {
             if (dto.getUsername() != null) user.setUsername(dto.getUsername());
-            if (dto.getPassword() != null) user.setPassword(dto.getPassword());
+            if (dto.getPassword() != null && !dto.getPassword().isBlank()) user.setPassword(dto.getPassword());
             if (dto.getName() != null) user.setName(dto.getName());
             if (dto.getEmail() != null) user.setEmail(dto.getEmail());
             if (dto.getPhone() != null) user.setPhone(dto.getPhone());
-            if(user.getVipMember() || dto.isVipMember()) {
-                user.setVipMember(true);
-            }
             if (dto.getRole() != null) {
                 user.setRole(roleService.getRoleByName(dto.getRole()));
             }
@@ -66,7 +63,6 @@ public class UserMapper {
             dto.setName(user.getName());
             dto.setEmail(user.getEmail());
             dto.setPhone(user.getPhone());
-            dto.setVipMember(user.getVipMember());
              dto.setRole(user.getRole().getName());
             return dto;
         }
@@ -106,7 +102,7 @@ public class UserMapper {
             if(dto.getUsername()!=null) {
                 existingUser.setUsername(dto.getUsername());
             }
-            if(dto.getPassword()!=null) {
+            if(dto.getPassword()!=null && !dto.getPassword().isBlank()) {
                 existingUser.setPassword(dto.getPassword());
             }
             if(dto.getName()!=null){

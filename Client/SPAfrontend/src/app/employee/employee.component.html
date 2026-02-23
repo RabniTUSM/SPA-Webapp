@@ -1,18 +1,18 @@
 <div class="employee-shell">
   <header class="employee-header">
     <div>
-      <p class="eyebrow">Employee Schedule</p>
-      <h1>Today's service lineup</h1>
-      <p class="lead">Stay ahead of your appointments and prep every room with confidence.</p>
+      <p class="eyebrow">{{ 'employee.eyebrow' | t }}</p>
+      <h1>{{ 'employee.title' | t }}</h1>
+      <p class="lead">{{ 'employee.lead' | t }}</p>
     </div>
     <div class="employee-meta">
       <div>
-        <span class="label">Employee</span>
-        <strong>{{ employeeName || 'Team member' }}</strong>
+        <span class="label">{{ 'employee.employee' | t }}</span>
+        <strong>{{ employeeName || ('employee.teamMember' | t) }}</strong>
       </div>
       <div>
-        <span class="label">View</span>
-        <strong>{{ filterType === 'upcoming' ? 'Upcoming only' : 'All bookings' }}</strong>
+        <span class="label">{{ 'employee.view' | t }}</span>
+        <strong>{{ filterType === 'upcoming' ? ('employee.upcomingView' | t) : ('employee.allView' | t) }}</strong>
       </div>
     </div>
   </header>
@@ -20,16 +20,16 @@
   <div class="filter-section">
     <label>
       <input type="radio" name="filter" value="upcoming" [(ngModel)]="filterType" (change)="onFilterChange()" />
-      Upcoming only
+      {{ 'employee.filterUpcoming' | t }}
     </label>
     <label>
       <input type="radio" name="filter" value="all" [(ngModel)]="filterType" (change)="onFilterChange()" />
-      All bookings
+      {{ 'employee.filterAll' | t }}
     </label>
   </div>
 
   <div *ngIf="groupedBookings.length === 0" class="no-bookings">
-    <p>No bookings found for this schedule.</p>
+    <p>{{ 'employee.noBookings' | t }}</p>
   </div>
 
   <div class="schedule">
@@ -41,11 +41,11 @@
             <h3>{{ booking.serviceName }}</h3>
             <span class="time-chip">{{ booking.startTime | date:'shortTime' }}</span>
           </div>
-          <p><strong>Customer:</strong> {{ booking.customerName }}</p>
-          <p><strong>Location:</strong> {{ booking.locationName }}</p>
-          <p><strong>Window:</strong> {{ booking.startTime | date:'short' }} - {{ booking.endTime | date:'shortTime' }}</p>
+          <p><strong>{{ 'employee.customer' | t }}:</strong> {{ booking.customerName }}</p>
+          <p><strong>{{ 'employee.location' | t }}:</strong> {{ booking.locationName }}</p>
+          <p><strong>{{ 'employee.window' | t }}:</strong> {{ booking.startTime | date:'short' }} - {{ booking.endTime | date:'shortTime' }}</p>
           <p *ngIf="filterType === 'upcoming'" class="time-remaining">
-            <strong>Time remaining:</strong> {{ getTimeRemaining(booking.startTime) }}
+            <strong>{{ 'employee.remaining' | t }}:</strong> {{ getTimeRemaining(booking.startTime) }}
           </p>
         </article>
       </div>

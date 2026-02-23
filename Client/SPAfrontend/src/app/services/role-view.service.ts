@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 
 export type RoleView = 'customer' | 'vip' | 'employee' | 'admin';
 
+const ROLE_OVERRIDES_KEY = 'aurelia-role-view-overrides';
+
 const DEFAULT_ROLE_VIEW_MAP: Record<string, RoleView> = {
   ADMIN: 'admin',
   EMPLOYEE: 'employee',
@@ -12,38 +14,70 @@ const DEFAULT_ROLE_VIEW_MAP: Record<string, RoleView> = {
 
 @Injectable({ providedIn: 'root' })
 export class RoleViewService {
-  private storageKey = 'spa_role_views';
-  private vipApprovedKey = 'spa_vip_approved';
+  private roleViewOverrides: Record<string, RoleView> = {};
+
+  constructor() {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const storedOverrides = window.localStorage.getItem(ROLE_OVERRIDES_KEY);
+      if (storedOverrides) {
+        this.roleViewOverrides = JSON.parse(storedOverrides) as Record<string, RoleView>;
+      }
+    } catch {
+      this.roleViewOverrides = {};
+    }
+  }
 
   getRoleViewMap(): Record<string, RoleView> {
-    if (!this.hasStorage()) {
-      return { ...DEFAULT_ROLE_VIEW_MAP };
-    }
-    const stored = this.safeParse<Record<string, RoleView>>(this.storageKey, {});
-    return { ...DEFAULT_ROLE_VIEW_MAP, ...stored };
+    return { ...DEFAULT_ROLE_VIEW_MAP, ...this.roleViewOverrides };
   }
 
   setRoleView(role: string, view: RoleView): void {
-    if (!this.hasStorage()) {
-      return;
-    }
     const map = this.getRoleViewMap();
     map[role] = view;
-    localStorage.setItem(this.storageKey, JSON.stringify(map));
+    this.roleViewOverrides = { ...map };
+    this.persistOverrides();
   }
 
-  getRoleView(role: string | null, username?: string | null): RoleView {
+  syncFromRoles(roles: Array<{ name: string; viewType?: string | null }>): void {
+    const nextOverrides: Record<string, RoleView> = { ...DEFAULT_ROLE_VIEW_MAP };
+    for (const role of roles) {
+      let view = this.normalizeView(role.viewType);
+      const upperRoleName = role.name.toUpperCase();
+      const defaultView = DEFAULT_ROLE_VIEW_MAP[upperRoleName];
+      if (view === 'customer' && defaultView && defaultView !== 'customer') {
+        view = defaultView;
+      }
+      if (view) {
+        nextOverrides[role.name] = view;
+      }
+    }
+    this.roleViewOverrides = nextOverrides;
+    this.persistOverrides();
+  }
+
+  getRoleView(role: string | null, _username?: string | null): RoleView {
+    const normalizedRole = (role || '').trim().toUpperCase();
+    if (normalizedRole === 'ADMIN') {
+      return 'admin';
+    }
+    if (normalizedRole === 'EMPLOYEE') {
+      return 'employee';
+    }
+    if (normalizedRole === 'VIP') {
+      return 'vip';
+    }
+
     const map = this.getRoleViewMap();
     const roleName = (role || '').trim();
     const mapped = this.findMappedView(map, roleName);
     const baseView = mapped || 'customer';
 
-    if (baseView === 'admin' || baseView === 'employee') {
+    if (baseView === 'admin' || baseView === 'employee' || baseView === 'vip') {
       return baseView;
-    }
-
-    if (this.isVipApproved(username)) {
-      return 'vip';
     }
 
     return baseView;
@@ -62,35 +96,6 @@ export class RoleViewService {
     }
   }
 
-  approveVip(username: string): void {
-    if (!this.hasStorage()) {
-      return;
-    }
-    const approved = new Set(this.getVipApprovedUsers());
-    approved.add(username);
-    localStorage.setItem(this.vipApprovedKey, JSON.stringify(Array.from(approved)));
-  }
-
-  revokeVip(username: string): void {
-    if (!this.hasStorage()) {
-      return;
-    }
-    const approved = new Set(this.getVipApprovedUsers());
-    approved.delete(username);
-    localStorage.setItem(this.vipApprovedKey, JSON.stringify(Array.from(approved)));
-  }
-
-  isVipApproved(username?: string | null): boolean {
-    if (!username) {
-      return false;
-    }
-    return this.getVipApprovedUsers().includes(username);
-  }
-
-  getVipApprovedUsers(): string[] {
-    return this.safeParse<string[]>(this.vipApprovedKey, []);
-  }
-
   private findMappedView(map: Record<string, RoleView>, role: string): RoleView | null {
     if (!role) {
       return null;
@@ -103,22 +108,18 @@ export class RoleViewService {
     return match ? map[match] : null;
   }
 
-  private safeParse<T>(key: string, fallback: T): T {
-    if (!this.hasStorage()) {
-      return fallback;
+  private normalizeView(view: string | null | undefined): RoleView | null {
+    const normalized = (view || '').trim().toLowerCase();
+    if (normalized === 'customer' || normalized === 'vip' || normalized === 'employee' || normalized === 'admin') {
+      return normalized;
     }
-    const raw = localStorage.getItem(key);
-    if (!raw) {
-      return fallback;
-    }
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
+    return null;
   }
 
-  private hasStorage(): boolean {
-    return typeof localStorage !== 'undefined';
+  private persistOverrides(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem(ROLE_OVERRIDES_KEY, JSON.stringify(this.roleViewOverrides));
   }
 }

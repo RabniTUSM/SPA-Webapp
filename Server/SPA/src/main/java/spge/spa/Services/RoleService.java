@@ -9,6 +9,7 @@ import spge.spa.Models.Role;
 import spge.spa.Repositories.RoleRepository;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class RoleService {
@@ -18,27 +19,10 @@ public class RoleService {
     }
 
     public void initializeRoles() {
-        if (roleRepository.count() == 0) {
-            var userRole = new Role();
-            userRole.setName("CUSTOMER");
-            userRole.setHasAdminAccess(false);
-            roleRepository.save(userRole);
-
-            var adminRole = new Role();
-            adminRole.setName("ADMIN");
-            adminRole.setHasAdminAccess(true);
-            roleRepository.save(adminRole);
-
-            var employeeRole = new Role();
-            employeeRole.setName("EMPLOYEE");
-            employeeRole.setHasAdminAccess(false);
-            roleRepository.save(employeeRole);
-
-            var vipRole = new Role();
-            vipRole.setName("VIP");
-            vipRole.setHasAdminAccess(false);
-            roleRepository.save(vipRole);
-        }
+        ensureRole("CUSTOMER", false, "customer");
+        ensureRole("ADMIN", true, "admin");
+        ensureRole("EMPLOYEE", false, "employee");
+        ensureRole("VIP", false, "vip");
     }
 
     public void saveRole(Role role) {
@@ -46,7 +30,7 @@ public class RoleService {
     }
 
     public Role getRoleByName(String name) {
-        return roleRepository.getRoleByName(name)
+        return roleRepository.findByNameIgnoreCase(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
     }
 
@@ -67,10 +51,15 @@ public class RoleService {
     }
 
     public void createRole(RoleInputDTO dto) {
+        String normalizedName = normalizeRoleName(dto.getName());
+        if (roleRepository.existsByNameIgnoreCase(normalizedName)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Role name already exists");
+        }
         var role = new Role();
-        role.setName(dto.getName());
+        role.setName(normalizedName);
         role.setHasAdminAccess(dto.isHasAdminAccess());
         role.setDescription(dto.getDescription());
+        role.setViewType(resolveViewType(dto.getViewType()));
         roleRepository.save(role);
     }
 
@@ -89,9 +78,15 @@ public class RoleService {
     public void updateRole(Long id, RoleInputDTO dto) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
-        role.setName(dto.getName());
+        String normalizedName = normalizeRoleName(dto.getName());
+        var roleWithSameName = roleRepository.findByNameIgnoreCase(normalizedName);
+        if (roleWithSameName.isPresent() && !roleWithSameName.get().getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Role name already exists");
+        }
+        role.setName(normalizedName);
         role.setHasAdminAccess(dto.isHasAdminAccess());
         role.setDescription(dto.getDescription());
+        role.setViewType(resolveViewType(dto.getViewType()));
         roleRepository.save(role);
     }
 
@@ -101,8 +96,56 @@ public class RoleService {
         dto.setName(role.getName());
         dto.setHasAdminAccess(role.isHasAdminAccess());
         dto.setDescription(role.getDescription());
+        dto.setViewType(resolveViewType(role.getViewType()));
         return dto;
     }
+
+    private String resolveViewType(String viewType) {
+        if (viewType == null || viewType.isBlank()) {
+            return "customer";
+        }
+        String normalized = viewType.trim().toLowerCase();
+        return switch (normalized) {
+            case "customer", "vip", "employee", "admin" -> normalized;
+            default -> "customer";
+        };
+    }
+
+    private String normalizeRoleName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role name is required");
+        }
+        return name.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private void ensureRole(String name, boolean hasAdminAccess, String viewType) {
+        var existing = roleRepository.findByNameIgnoreCase(name);
+        if (existing.isPresent()) {
+            var role = existing.get();
+            boolean changed = false;
+            if (!name.equals(role.getName())) {
+                role.setName(name);
+                changed = true;
+            }
+            if (role.isHasAdminAccess() != hasAdminAccess) {
+                role.setHasAdminAccess(hasAdminAccess);
+                changed = true;
+            }
+            String normalizedView = resolveViewType(role.getViewType());
+            if (!normalizedView.equals(role.getViewType()) || !normalizedView.equals(viewType)) {
+                role.setViewType(viewType);
+                changed = true;
+            }
+            if (changed) {
+                roleRepository.save(role);
+            }
+            return;
+        }
+
+        var role = new Role();
+        role.setName(name);
+        role.setHasAdminAccess(hasAdminAccess);
+        role.setViewType(viewType);
+        roleRepository.save(role);
+    }
 }
-
-

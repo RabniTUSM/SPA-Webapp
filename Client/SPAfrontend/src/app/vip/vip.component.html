@@ -1,70 +1,84 @@
 <div class="vip-shell">
   <section class="vip-hero">
     <div class="vip-intro">
-      <span class="vip-tag">VIP Atelier</span>
-      <h1>Private spa access, curated for you</h1>
-      <p class="vip-lead">
-        Enjoy priority booking, premium locations, and a standing 20% VIP discount.
-      </p>
+      <span class="vip-tag">{{ 'vip.tag' | t }}</span>
+      <h1>{{ 'vip.title' | t }}</h1>
+      <p class="vip-lead">{{ 'vip.lead' | t }}</p>
       <div class="vip-meta">
         <div>
-          <span class="label">Member</span>
-          <strong>{{ currentUser?.name || 'VIP Guest' }}</strong>
+          <span class="label">{{ 'vip.member' | t }}</span>
+          <strong>{{ currentUser?.name || ('vip.guest' | t) }}</strong>
         </div>
         <div>
-          <span class="label">Discount</span>
+          <span class="label">{{ 'vip.discount' | t }}</span>
           <strong>{{ discountPercentage }}% off</strong>
         </div>
       </div>
-      <button (click)="exportPdfServices()" class="btn-outline">Download VIP menu</button>
+      <button (click)="exportPdfServices()" class="btn-outline">{{ 'vip.downloadMenu' | t }}</button>
     </div>
 
     <div class="vip-panel">
-      <h2>Book a VIP reservation</h2>
-      <p>Choose the employee and location that match your mood.</p>
+      <h2>{{ 'vip.newReservation' | t }}</h2>
+      <p>{{ 'vip.newReservationLead' | t }}</p>
       <form [formGroup]="bookingForm" (ngSubmit)="bookService()">
         <div class="form-grid">
           <div class="form-field">
-            <label for="vipService">Service</label>
+            <label for="vipService">{{ 'customer.fieldService' | t }}</label>
             <select id="vipService" formControlName="serviceId">
-              <option value="" disabled>Select service</option>
+              <option value="" disabled>{{ 'customer.selectService' | t }}</option>
               <option *ngFor="let service of services" [value]="service.id">
                 {{ service.name }} - ${{ getVipPrice(service.price) | number:'1.2-2' }}
               </option>
             </select>
           </div>
           <div class="form-field">
-            <label for="vipEmployee">Preferred employee</label>
+            <label for="vipEmployee">{{ 'customer.fieldEmployee' | t }}</label>
             <select id="vipEmployee" formControlName="employeeId">
-              <option value="" disabled>Select employee</option>
+              <option value="" disabled>{{ 'customer.selectEmployee' | t }}</option>
               <option *ngFor="let employee of employees" [value]="employee.id">
                 {{ employee.name }}
               </option>
             </select>
           </div>
           <div class="form-field">
-            <label for="vipLocation">Location</label>
+            <label for="vipLocation">{{ 'customer.fieldLocation' | t }}</label>
             <select id="vipLocation" formControlName="locationId">
-              <option value="" disabled>Select location</option>
+              <option value="" disabled>{{ 'customer.selectLocation' | t }}</option>
               <option *ngFor="let location of locations" [value]="location.id">
-                {{ location.name }} - {{ location.address || 'Location info' }}
+                {{ location.name }} - {{ location.address || ('customer.noAddress' | t) }}
               </option>
             </select>
           </div>
           <div class="form-field">
-            <label for="vipStart">Start time</label>
-            <input id="vipStart" type="datetime-local" formControlName="startTime" />
+            <label for="vipDate">{{ 'customer.fieldDay' | t }}</label>
+            <input id="vipDate" type="date" formControlName="bookingDate" [min]="minBookingDate" />
           </div>
-          <div class="form-field">
-            <label for="vipEnd">End time</label>
-            <input id="vipEnd" type="datetime-local" formControlName="endTime" />
+          <div class="form-field session-field">
+            <label>{{ 'customer.fieldSession' | t }}</label>
+            <input type="hidden" formControlName="timeSlot" />
+            <div class="session-grid" [class.disabled]="!canChooseSlots">
+              <button
+                type="button"
+                class="session-chip"
+                *ngFor="let slot of timetableSlots"
+                [class.selected]="bookingForm.get('timeSlot')?.value === slot.value"
+                [class.unavailable]="slot.unavailable"
+                [disabled]="slot.unavailable || !canChooseSlots"
+                (click)="selectTimeSlot(slot.value)"
+              >
+                <span>{{ slot.label }}</span>
+                <small *ngIf="slot.reason === 'occupied'">{{ 'customer.slotOccupied' | t }}</small>
+                <small *ngIf="slot.reason === 'past'">{{ 'customer.slotPast' | t }}</small>
+              </button>
+            </div>
+            <p class="session-hint" *ngIf="!canChooseSlots">{{ 'customer.slotChooseDateEmployee' | t }}</p>
           </div>
         </div>
 
         <input type="hidden" formControlName="customerId" />
 
         <div class="form-actions">
-          <button type="submit" class="btn-primary">Reserve VIP slot</button>
+          <button type="submit" class="btn-primary">{{ 'vip.reserve' | t }}</button>
           <span *ngIf="formError" class="form-error">{{ formError }}</span>
         </div>
       </form>
@@ -74,23 +88,23 @@
   <section class="vip-services">
     <div class="section-header">
       <div>
-        <h2>VIP services</h2>
-        <p>All services include member pricing.</p>
+        <h2>{{ 'vip.premiumServices' | t }}</h2>
+        <p>{{ 'vip.premiumServicesLead' | t }}</p>
       </div>
-      <span class="section-note">{{ services.length }} services</span>
+      <span class="section-note">{{ services.length }} {{ 'vip.servicesWord' | t }}</span>
     </div>
 
     <div class="services-grid">
       <article *ngFor="let service of services" class="service-card">
         <div class="service-header">
           <h3>{{ service.name }}</h3>
-          <span class="badge">VIP</span>
+          <span class="badge">{{ 'vip.badge' | t }}</span>
         </div>
         <p>{{ service.description }}</p>
         <div class="price-stack">
           <span class="original">${{ service.price | number:'1.2-2' }}</span>
           <span class="vip-price">${{ getVipPrice(service.price) | number:'1.2-2' }}</span>
-          <span class="savings">Save ${{ getSavings(service.price) | number:'1.2-2' }}</span>
+          <span class="savings">{{ 'vip.save' | t }} ${{ getSavings(service.price) | number:'1.2-2' }}</span>
         </div>
       </article>
     </div>
@@ -99,14 +113,14 @@
   <section class="vip-bookings">
     <div class="section-header">
       <div>
-        <h2>My reservations</h2>
-        <p>Your upcoming VIP bookings.</p>
+        <h2>{{ 'vip.myReservations' | t }}</h2>
+        <p>{{ 'vip.myReservationsLead' | t }}</p>
       </div>
-      <span class="section-note">{{ myBookings.length }} reserved</span>
+      <span class="section-note">{{ myBookings.length }} {{ 'vip.reservedWord' | t }}</span>
     </div>
 
     <div *ngIf="myBookings.length === 0" class="empty-state">
-      <p>No VIP reservations yet.</p>
+      <p>{{ 'vip.none' | t }}</p>
     </div>
 
     <div class="bookings-grid">
@@ -114,7 +128,7 @@
         <h4>{{ booking.serviceName }}</h4>
         <p class="booking-detail">{{ booking.startTime | date:'medium' }}</p>
         <p class="booking-detail">{{ booking.locationName }}</p>
-        <button class="btn-outline" (click)="cancelBooking(booking.id)">Cancel</button>
+        <button class="btn-outline" (click)="cancelBooking(booking.id)">{{ 'customer.cancel' | t }}</button>
       </article>
     </div>
   </section>

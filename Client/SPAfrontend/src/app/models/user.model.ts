@@ -12,7 +12,6 @@ export interface UserOutputDTO {
   name: string;
   email: string;
   phone: string;
-  vipMember: boolean;
   role: string;
 }
 
@@ -30,7 +29,5 @@ export interface AdminUserInputDTO {
   name: string;
   email: string;
   phone: string;
-  isVipMember: boolean;
   role: string;
 }
-

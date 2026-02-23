@@ -8,7 +8,7 @@ import spge.spa.Services.PdfExportService;
 import spge.spa.Services.ServicesService;
 
 @RestController
-@RequestMapping("/SPA/Service")
+@RequestMapping("/Service")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class SpaServiceController {
     private final ServicesService servicesService;

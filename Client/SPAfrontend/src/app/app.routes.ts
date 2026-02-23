@@ -10,6 +10,7 @@ import { AdminGuard } from './guards/admin.guard';
 import { EmployeeGuard } from './guards/employee.guard';
 import { VipGuard } from './guards/vip.guard';
 import { CustomerGuard } from './guards/customer.guard';
+import { AdminDataResolver } from './admin/admin-data.resolver';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -17,27 +18,11 @@ export const routes: Routes = [
   { path: 'customer', component: CustomerComponent, canActivate: [AuthGuard, CustomerGuard] },
   { path: 'vip', component: VipComponent, canActivate: [AuthGuard, VipGuard] },
   { path: 'employee', component: EmployeeComponent, canActivate: [AuthGuard, EmployeeGuard] },
-  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard, AdminGuard] },
-  {
-    path: 'users',
-    loadChildren: () => import('./user/user.module').then(m => m.UserModule),
-    canActivate: [AuthGuard, AdminGuard]
-  },
-  {
-    path: 'bookings',
-    loadChildren: () => import('./booking/booking.module').then(m => m.BookingModule),
-    canActivate: [AuthGuard, AdminGuard]
-  },
-  {
-    path: 'locations',
-    loadChildren: () => import('./location/location.module').then(m => m.LocationModule),
-    canActivate: [AuthGuard, AdminGuard]
-  },
-  {
-    path: 'services',
-    loadChildren: () => import('./spa-service/spa-service.module').then(m => m.SpaServiceModule),
-    canActivate: [AuthGuard, AdminGuard]
-  },
+  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard, AdminGuard], resolve: { adminData: AdminDataResolver } },
+  { path: 'users', redirectTo: '/admin', pathMatch: 'full' },
+  { path: 'bookings', redirectTo: '/admin', pathMatch: 'full' },
+  { path: 'locations', redirectTo: '/admin', pathMatch: 'full' },
+  { path: 'services', redirectTo: '/admin', pathMatch: 'full' },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' }
 ];

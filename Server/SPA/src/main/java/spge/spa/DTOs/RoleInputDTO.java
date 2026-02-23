@@ -4,6 +4,7 @@ public class RoleInputDTO {
     private String name;
     private boolean hasAdminAccess;
     private String description;
+    private String viewType;
 
     public String getName() {
         return name;
@@ -28,5 +29,12 @@ public class RoleInputDTO {
     public void setDescription(String description) {
         this.description = description;
     }
-}
 
+    public String getViewType() {
+        return viewType;
+    }
+
+    public void setViewType(String viewType) {
+        this.viewType = viewType;
+    }
+}

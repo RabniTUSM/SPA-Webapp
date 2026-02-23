@@ -1,33 +1,102 @@
 <div class="login-shell">
-  <section class="login-hero">
-    <p class="eyebrow">Spa Suite</p>
-    <h1>One platform for every role</h1>
-    <p class="lead">
-      Customers manage reservations, employees track schedules, and admins orchestrate the full experience.
-    </p>
-    <div class="role-list">
-      <span>Customer</span>
-      <span>VIP Customer</span>
-      <span>Employee</span>
-      <span>Admin</span>
+  <section class="brand-panel">
+    <img src="/assets/aurelia-logo.svg" alt="Aurelia logo" class="brand-logo" />
+    <h1>{{ 'login.heroTitle' | t }}</h1>
+    <p class="lead">{{ 'login.heroLead' | t }}</p>
+    <div class="brand-metrics">
+      <article>
+        <strong>{{ 'login.metric1Title' | t }}</strong>
+        <span>{{ 'login.metric1Desc' | t }}</span>
+      </article>
+      <article>
+        <strong>{{ 'login.metric2Title' | t }}</strong>
+        <span>{{ 'login.metric2Desc' | t }}</span>
+      </article>
+      <article>
+        <strong>{{ 'login.metric3Title' | t }}</strong>
+        <span>{{ 'login.metric3Desc' | t }}</span>
+      </article>
     </div>
+    <img src="/assets/spa-lobby.svg" alt="Spa lobby illustration" class="hero-visual" />
   </section>
 
   <section class="login-card">
-    <h2>Sign in</h2>
-    <form [formGroup]="loginForm" (ngSubmit)="login()">
+    <div class="mode-tabs">
+      <button type="button" [class.active]="mode === 'login'" (click)="setMode('login')">{{ 'login.tabSignIn' | t }}</button>
+      <button type="button" [class.active]="mode === 'register'" (click)="setMode('register')">{{ 'login.tabRegister' | t }}</button>
+    </div>
+
+    <h2>{{ mode === 'login' ? ('login.signIn' | t) : ('login.tabRegister' | t) }}</h2>
+    <p class="card-sub">{{ mode === 'login' ? ('login.signInSub' | t) : ('login.registerSub' | t) }}</p>
+
+    <form *ngIf="mode === 'login'" [formGroup]="loginForm" (ngSubmit)="login()">
       <label>
-        Username
-        <input formControlName="username" placeholder="your username" required />
+        {{ 'login.username' | t }}
+        <input formControlName="username" [placeholder]="'login.username' | t" required />
       </label>
       <label>
-        Password
-        <input formControlName="password" placeholder="password" required type="password" />
+        {{ 'login.password' | t }}
+        <div class="password-field">
+          <input formControlName="password" [placeholder]="'login.password' | t" required [type]="showLoginPassword ? 'text' : 'password'" />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="toggleLoginPassword()"
+            [attr.aria-label]="(showLoginPassword ? 'login.hidePassword' : 'login.showPassword') | t"
+            [attr.aria-pressed]="showLoginPassword"
+          >
+            <span class="eye-icon" [class.hidden]="!showLoginPassword"></span>
+          </button>
+        </div>
       </label>
-      <button type="submit" class="btn-primary">Sign in</button>
-      <div *ngIf="error" class="error">{{ error }}</div>
+      <button type="submit" class="btn-primary">{{ 'login.enter' | t }}</button>
     </form>
-    <div class="divider"></div>
-    <button (click)="guestLogin()" class="btn-guest">Continue as guest</button>
+
+    <form *ngIf="mode === 'register'" [formGroup]="registerForm" (ngSubmit)="register()">
+      <label>
+        {{ 'login.username' | t }}
+        <input formControlName="username" [placeholder]="'login.username' | t" required />
+        <small class="field-hint field-error" *ngIf="registerForm.get('username')?.hasError('taken')">
+          {{ 'login.usernameTaken' | t }}
+        </small>
+      </label>
+      <label>
+        {{ 'login.password' | t }}
+        <div class="password-field">
+          <input formControlName="password" [placeholder]="'login.password' | t" required [type]="showRegisterPassword ? 'text' : 'password'" />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="toggleRegisterPassword()"
+            [attr.aria-label]="(showRegisterPassword ? 'login.hidePassword' : 'login.showPassword') | t"
+            [attr.aria-pressed]="showRegisterPassword"
+          >
+            <span class="eye-icon" [class.hidden]="!showRegisterPassword"></span>
+          </button>
+        </div>
+      </label>
+      <label>
+        {{ 'login.name' | t }}
+        <input formControlName="name" [placeholder]="'login.name' | t" required />
+      </label>
+      <label>
+        {{ 'login.email' | t }}
+        <input formControlName="email" [placeholder]="'login.email' | t" required type="email" />
+        <small class="field-hint field-error" *ngIf="registerForm.get('email')?.hasError('taken')">
+          {{ 'login.emailTaken' | t }}
+        </small>
+      </label>
+      <label>
+        {{ 'login.phone' | t }}
+        <input formControlName="phone" [placeholder]="'login.phone' | t" required />
+      </label>
+      <button type="submit" class="btn-primary">{{ 'login.registerBtn' | t }}</button>
+    </form>
+
+    <div *ngIf="error" class="error">{{ error }}</div>
+    <div *ngIf="success" class="success">{{ success }}</div>
+
+    <div *ngIf="mode === 'login'" class="divider"></div>
+    <button *ngIf="mode === 'login'" (click)="guestLogin()" class="btn-guest">{{ 'login.guest' | t }}</button>
   </section>
 </div>

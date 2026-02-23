@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { RoleViewService } from '../services/role-view.service';
+import { TranslatePipe } from '../pipes/t.pipe';
 
 @Component({
   selector: 'app-role-redirect',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './role-redirect.component.html',
   styleUrls: ['./role-redirect.component.scss']
 })

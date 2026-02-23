@@ -16,7 +16,10 @@ export class SpaServiceService {
   }
 
   createService(service: SpaServiceInputDTO): Observable<any> {
-    return this.http.post(this.apiUrl, service, { headers: this.getHeaders() });
+    return this.http.post(this.apiUrl, service, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   getServiceById(id: number): Observable<SpaServiceOutputDTO> {
@@ -28,11 +31,17 @@ export class SpaServiceService {
   }
 
   updateService(id: number, service: SpaServiceInputDTO): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, service, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/${id}`, service, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   deleteService(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   exportServicesPdf(): Observable<Blob> {

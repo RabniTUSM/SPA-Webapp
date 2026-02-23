@@ -16,7 +16,10 @@ export class RoleService {
   }
 
   createRole(role: RoleInputDTO): Observable<any> {
-    return this.http.post(this.apiUrl, role, { headers: this.getHeaders() });
+    return this.http.post(this.apiUrl, role, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   getRoleById(id: number): Observable<RoleOutputDTO> {
@@ -28,11 +31,16 @@ export class RoleService {
   }
 
   updateRole(id: number, role: RoleInputDTO): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, role, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/${id}`, role, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   deleteRole(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 }
-

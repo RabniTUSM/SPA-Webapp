@@ -28,6 +28,12 @@ public class UserController {
         return ResponseEntity.ok("Admin created successfully");
     }
 
+    @PostMapping("/bootstrap-admin")
+    public ResponseEntity<String> bootstrapAdmin(@RequestBody CreateAdminDTO admin) {
+        userService.createBootstrapAdmin(admin);
+        return ResponseEntity.ok("Bootstrap admin created successfully");
+    }
+
     @PostMapping("/admin/user")
     public ResponseEntity<String> adminSaveUser(@RequestBody AdminUserInputDTO adminUserDTO) {
         userService.adminUserSave(adminUserDTO);

@@ -14,6 +14,8 @@ public class Role {
     private boolean hasAdminAccess = false;
     @Column
     private String description;
+    @Column
+    private String viewType = "customer";
 
     public Long getId() {
         return id;
@@ -41,5 +43,13 @@ public class Role {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getViewType() {
+        return viewType;
+    }
+
+    public void setViewType(String viewType) {
+        this.viewType = viewType;
     }
 }

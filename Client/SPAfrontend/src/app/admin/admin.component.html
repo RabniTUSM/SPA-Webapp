@@ -1,73 +1,73 @@
 <div class="admin-shell">
   <header class="admin-header">
     <div>
-      <p class="eyebrow">Admin control room</p>
-      <h1>Operations dashboard</h1>
-      <p class="lead">Own roles, approvals, and system visibility.</p>
+      <p class="eyebrow">{{ 'admin.eyebrow' | t }}</p>
+      <h1>{{ 'admin.title' | t }}</h1>
+      <p class="lead">{{ 'admin.lead' | t }}</p>
     </div>
     <div class="stats">
       <div>
-        <span class="label">Roles</span>
+        <span class="label">{{ 'admin.roles' | t }}</span>
         <strong>{{ roles.length }}</strong>
       </div>
       <div>
-        <span class="label">Users</span>
+        <span class="label">{{ 'admin.users' | t }}</span>
         <strong>{{ users.length }}</strong>
       </div>
       <div>
-        <span class="label">VIP requests</span>
+        <span class="label">{{ 'nav.bookings' | t }}</span>
+        <strong>{{ bookings.length }}</strong>
+      </div>
+      <div>
+        <span class="label">{{ 'admin.vipRequests' | t }}</span>
         <strong>{{ vipRequests.length }}</strong>
       </div>
     </div>
   </header>
 
-  <div class="quick-actions">
-    <button class="btn-outline" (click)="navigate('/bookings')">Manage bookings</button>
-    <button class="btn-outline" (click)="navigate('/services')">Manage services</button>
-    <button class="btn-outline" (click)="navigate('/locations')">Manage locations</button>
-    <button class="btn-outline" (click)="navigate('/users')">Manage users</button>
-  </div>
-
   <div class="tab-menu">
-    <button [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'">Roles & Views</button>
-    <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">User Overview</button>
-    <button [class.active]="activeTab === 'vip'" (click)="activeTab = 'vip'">VIP Requests</button>
-    <button [class.active]="activeTab === 'admins'" (click)="activeTab = 'admins'">Create Admin</button>
+    <button [class.active]="activeTab === 'roles'" (click)="setTab('roles')">{{ 'admin.roleAndViews' | t }}</button>
+    <button [class.active]="activeTab === 'users'" (click)="setTab('users')">{{ 'admin.usersTab' | t }}</button>
+    <button [class.active]="activeTab === 'bookings'" (click)="setTab('bookings')">{{ 'admin.bookingsTab' | t }}</button>
+    <button [class.active]="activeTab === 'services'" (click)="setTab('services')">{{ 'admin.servicesTab' | t }}</button>
+    <button [class.active]="activeTab === 'locations'" (click)="setTab('locations')">{{ 'admin.locationsTab' | t }}</button>
+    <button [class.active]="activeTab === 'vip'" (click)="setTab('vip')">{{ 'admin.vipTab' | t }}</button>
+    <button [class.active]="activeTab === 'admins'" (click)="setTab('admins')">{{ 'admin.createAdminTab' | t }}</button>
   </div>
 
   <section *ngIf="activeTab === 'roles'" class="tab-content">
     <div class="section-header">
-      <h2>Role management</h2>
-      <button (click)="toggleRoleForm()" class="btn-primary">
-        {{ showRoleForm ? 'Cancel' : 'Add new role' }}
+      <h2>{{ 'admin.roleManagement' | t }}</h2>
+      <button class="btn-primary" type="button" (click)="toggleRoleForm()">
+        {{ showRoleForm ? ('admin.cancel' | t) : ('admin.addRole' | t) }}
       </button>
     </div>
 
     <form *ngIf="showRoleForm" [formGroup]="roleForm" (ngSubmit)="saveRole()" class="form-section">
       <div class="form-grid">
         <div class="form-field">
-          <label>Role name</label>
-          <input formControlName="name" placeholder="CUSTOMER_PLUS" />
+          <label>{{ 'admin.roleName' | t }}</label>
+          <input formControlName="name" [placeholder]="'admin.roleNamePlaceholder' | t" />
         </div>
         <div class="form-field">
-          <label>Role view</label>
+          <label>{{ 'admin.roleView' | t }}</label>
           <select formControlName="viewType">
-            <option *ngFor="let view of roleViewOptions" [value]="view">
-              {{ view }} look
-            </option>
+            <option *ngFor="let view of roleViewOptions" [value]="view">{{ ('role.' + view) | t }}</option>
           </select>
         </div>
         <div class="form-field">
-          <label>Description</label>
-          <textarea formControlName="description" placeholder="Short role description"></textarea>
+          <label>{{ 'admin.description' | t }}</label>
+          <textarea formControlName="description" [placeholder]="'admin.roleDescriptionPlaceholder' | t"></textarea>
         </div>
         <label class="checkbox">
           <input type="checkbox" formControlName="hasAdminAccess" />
-          Has admin access
+          {{ 'admin.adminAccess' | t }}
         </label>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn-primary">{{ editingRoleId ? 'Update' : 'Create' }} role</button>
+        <button class="btn-primary" type="submit">
+          {{ editingRoleId ? ('admin.updateRole' | t) : ('admin.createRole' | t) }}
+        </button>
         <span *ngIf="roleFormError" class="form-error">{{ roleFormError }}</span>
       </div>
     </form>
@@ -76,26 +76,22 @@
       <table class="admin-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Admin Access</th>
-            <th>Description</th>
-            <th>Assigned View</th>
-            <th>Actions</th>
+            <th>{{ 'admin.name' | t }}</th>
+            <th>{{ 'admin.assignedView' | t }}</th>
+            <th>{{ 'admin.adminAccess' | t }}</th>
+            <th>{{ 'admin.description' | t }}</th>
+            <th>{{ 'admin.actions' | t }}</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let role of roles">
             <td>{{ role.name }}</td>
-            <td>{{ role.hasAdminAccess ? 'Yes' : 'No' }}</td>
-            <td>{{ role.description || 'N/A' }}</td>
-            <td>
-              <select [value]="getViewForRole(role.name)" (change)="updateRoleView(role, $any($event.target).value)">
-                <option *ngFor="let view of roleViewOptions" [value]="view">{{ view }}</option>
-              </select>
-            </td>
+            <td>{{ ('role.' + getViewForRole(role.name)) | t }}</td>
+            <td>{{ role.hasAdminAccess ? ('admin.yes' | t) : ('admin.no' | t) }}</td>
+            <td>{{ role.description || ('admin.noDescription' | t) }}</td>
             <td class="actions">
-              <button (click)="editRole(role)" class="btn-link">Edit</button>
-              <button (click)="deleteRole(role.id)" class="btn-link danger">Delete</button>
+              <button class="btn-link" type="button" (click)="editRole(role)">{{ 'admin.edit' | t }}</button>
+              <button class="btn-link danger" type="button" (click)="deleteRole(role.id)">{{ 'admin.delete' | t }}</button>
             </td>
           </tr>
         </tbody>
@@ -104,17 +100,23 @@
   </section>
 
   <section *ngIf="activeTab === 'users'" class="tab-content">
-    <h2>User overview</h2>
+    <div class="section-header">
+      <h2>{{ 'admin.userOverview' | t }}</h2>
+      <div class="section-actions">
+        <span class="section-note">{{ users.length }} {{ 'admin.users' | t }}</span>
+        <button class="btn-primary" type="button" (click)="openUserCreate()">{{ 'admin.addUser' | t }}</button>
+      </div>
+    </div>
+
     <div class="table-wrap">
       <table class="admin-table">
         <thead>
           <tr>
-            <th>Username</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>VIP</th>
-            <th>Actions</th>
+            <th>{{ 'admin.username' | t }}</th>
+            <th>{{ 'admin.name' | t }}</th>
+            <th>{{ 'admin.email' | t }}</th>
+            <th>{{ 'admin.roleLabel' | t }}</th>
+            <th>{{ 'admin.actions' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -123,9 +125,268 @@
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.role }}</td>
-            <td>{{ user.vipMember ? 'Yes' : 'No' }}</td>
             <td class="actions">
-              <button (click)="deleteUser(user.id)" class="btn-link danger">Delete</button>
+              <button class="btn-link" type="button" (click)="openUserEdit(user)">{{ 'admin.edit' | t }}</button>
+              <button class="btn-link danger" type="button" (click)="deleteUser(user.id)">{{ 'admin.delete' | t }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <form *ngIf="editingUsername || isCreatingUser" [formGroup]="userEditForm" (ngSubmit)="saveUserEdit()" class="form-section inline-editor">
+      <h3>
+        {{ isCreatingUser ? ('admin.createUser' | t) : ('admin.editUser' | t) + ': ' + editingUsername }}
+      </h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>{{ 'admin.username' | t }}</label>
+          <input formControlName="username" [readonly]="!isCreatingUser" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.password' | t }}</label>
+          <input formControlName="password" type="password" [placeholder]="isCreatingUser ? '' : ('admin.passwordOptionalHint' | t)" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.name' | t }}</label>
+          <input formControlName="name" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.email' | t }}</label>
+          <input formControlName="email" type="email" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.phone' | t }}</label>
+          <input formControlName="phone" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.roleLabel' | t }}</label>
+          <select formControlName="role">
+            <option value="" disabled>{{ 'admin.selectRole' | t }}</option>
+            <option *ngFor="let role of roles" [value]="role.name">{{ role.name }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" type="submit">
+          {{ isCreatingUser ? ('admin.createUserBtn' | t) : ('admin.updateUser' | t) }}
+        </button>
+        <button class="btn-outline" type="button" (click)="cancelUserEdit()">{{ 'admin.cancel' | t }}</button>
+        <span *ngIf="userEditError" class="form-error">{{ userEditError }}</span>
+      </div>
+    </form>
+  </section>
+
+  <section *ngIf="activeTab === 'bookings'" class="tab-content">
+    <div class="section-header">
+      <h2>{{ 'admin.bookingsManager' | t }}</h2>
+      <span class="section-note">{{ bookings.length }} {{ 'nav.bookings' | t }}</span>
+    </div>
+
+    <form [formGroup]="bookingForm" (ngSubmit)="saveBooking()" class="form-section">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>{{ 'admin.customer' | t }}</label>
+          <select formControlName="customerId">
+            <option value="" disabled>{{ 'admin.selectCustomer' | t }}</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">{{ customer.name }} ({{ customer.username }})</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.employee' | t }}</label>
+          <select formControlName="employeeId">
+            <option value="" disabled>{{ 'admin.selectEmployee' | t }}</option>
+            <option *ngFor="let employee of employees" [value]="employee.id">{{ employee.name }}</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.serviceLabel' | t }}</label>
+          <select formControlName="serviceId">
+            <option value="" disabled>{{ 'admin.selectService' | t }}</option>
+            <option *ngFor="let service of services" [value]="service.id">{{ service.name }} - ${{ service.price | number:'1.2-2' }}</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.locationLabel' | t }}</label>
+          <select formControlName="locationId">
+            <option value="" disabled>{{ 'admin.selectLocation' | t }}</option>
+            <option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>{{ 'customer.fieldDay' | t }}</label>
+          <input formControlName="bookingDate" type="date" [min]="minBookingDate" />
+        </div>
+        <div class="form-field session-field">
+          <label>{{ 'customer.fieldSession' | t }}</label>
+          <input type="hidden" formControlName="timeSlot" />
+          <div class="session-grid" [class.disabled]="!bookingCanChooseSlots">
+            <button
+              type="button"
+              class="session-chip"
+              *ngFor="let slot of bookingTimeSlots"
+              [class.selected]="bookingForm.get('timeSlot')?.value === slot.value"
+              [class.unavailable]="slot.unavailable"
+              [disabled]="slot.unavailable || !bookingCanChooseSlots"
+              (click)="selectBookingSlot(slot.value)"
+            >
+              <span>{{ slot.label }}</span>
+              <small *ngIf="slot.reason === 'occupied'">{{ 'customer.slotOccupied' | t }}</small>
+              <small *ngIf="slot.reason === 'past'">{{ 'customer.slotPast' | t }}</small>
+            </button>
+          </div>
+          <p class="session-hint" *ngIf="!bookingCanChooseSlots">{{ 'customer.slotChooseDateEmployee' | t }}</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="submit">{{ editingBookingId ? ('admin.updateBooking' | t) : ('admin.createBooking' | t) }}</button>
+        <button class="btn-outline" type="button" *ngIf="editingBookingId" (click)="resetBookingForm()">{{ 'admin.cancel' | t }}</button>
+        <span *ngIf="bookingFormError" class="form-error">{{ bookingFormError }}</span>
+      </div>
+    </form>
+
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{{ 'admin.customer' | t }}</th>
+            <th>{{ 'admin.employee' | t }}</th>
+            <th>{{ 'admin.serviceLabel' | t }}</th>
+            <th>{{ 'admin.locationLabel' | t }}</th>
+            <th>{{ 'customer.fieldDay' | t }}</th>
+            <th>{{ 'customer.fieldSession' | t }}</th>
+            <th>{{ 'admin.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let booking of bookings">
+            <td>#{{ booking.id }}</td>
+            <td>{{ booking.customerName }}</td>
+            <td>{{ booking.employeeName }}</td>
+            <td>{{ booking.serviceName }}</td>
+            <td>{{ booking.locationName }}</td>
+            <td>{{ booking.startTime | date:'mediumDate' }}</td>
+            <td>{{ booking.startTime | date:'shortTime' }} - {{ booking.endTime | date:'shortTime' }}</td>
+            <td class="actions">
+              <button class="btn-link" type="button" (click)="editBooking(booking)">{{ 'admin.edit' | t }}</button>
+              <button class="btn-link danger" type="button" (click)="deleteBooking(booking.id)">{{ 'admin.delete' | t }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="activeTab === 'services'" class="tab-content">
+    <div class="section-header">
+      <h2>{{ 'admin.servicesManager' | t }}</h2>
+      <div class="section-actions">
+        <span class="section-note">{{ services.length }} {{ 'nav.services' | t }}</span>
+        <button class="btn-outline" type="button" (click)="exportServicesPdf()">{{ 'vip.downloadMenu' | t }}</button>
+      </div>
+    </div>
+
+    <form [formGroup]="serviceForm" (ngSubmit)="saveService()" class="form-section">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>{{ 'admin.serviceName' | t }}</label>
+          <input formControlName="name" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.price' | t }}</label>
+          <input formControlName="price" type="number" min="0" step="0.01" />
+        </div>
+        <div class="form-field full">
+          <label>{{ 'admin.description' | t }}</label>
+          <textarea formControlName="description"></textarea>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="isVipOnly" />
+          {{ 'admin.vipOnly' | t }}
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" type="submit">{{ editingServiceId ? ('admin.updateService' | t) : ('admin.createService' | t) }}</button>
+        <button class="btn-outline" type="button" *ngIf="editingServiceId" (click)="cancelServiceEdit()">{{ 'admin.cancel' | t }}</button>
+        <span *ngIf="serviceFormError" class="form-error">{{ serviceFormError }}</span>
+      </div>
+    </form>
+
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>{{ 'admin.name' | t }}</th>
+            <th>{{ 'admin.description' | t }}</th>
+            <th>{{ 'admin.price' | t }}</th>
+            <th>{{ 'admin.vipOnly' | t }}</th>
+            <th>{{ 'admin.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let service of services">
+            <td>{{ service.name }}</td>
+            <td>{{ service.description || ('admin.noDescription' | t) }}</td>
+            <td>${{ service.price | number:'1.2-2' }}</td>
+            <td>{{ service.isVipOnly ? ('admin.yes' | t) : ('admin.no' | t) }}</td>
+            <td class="actions">
+              <button class="btn-link" type="button" (click)="editService(service)">{{ 'admin.edit' | t }}</button>
+              <button class="btn-link danger" type="button" (click)="deleteService(service.id)">{{ 'admin.delete' | t }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="activeTab === 'locations'" class="tab-content">
+    <div class="section-header">
+      <h2>{{ 'admin.locationsManager' | t }}</h2>
+      <span class="section-note">{{ locations.length }} {{ 'nav.locations' | t }}</span>
+    </div>
+
+    <form [formGroup]="locationForm" (ngSubmit)="saveLocation()" class="form-section">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>{{ 'admin.locationName' | t }}</label>
+          <input formControlName="name" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'admin.locationAddress' | t }}</label>
+          <input formControlName="address" />
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="vipServiceAvailable" />
+          {{ 'admin.vipServicesAvailable' | t }}
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" type="submit">{{ editingLocationId ? ('admin.updateLocation' | t) : ('admin.createLocation' | t) }}</button>
+        <button class="btn-outline" type="button" *ngIf="editingLocationId" (click)="cancelLocationEdit()">{{ 'admin.cancel' | t }}</button>
+        <span *ngIf="locationFormError" class="form-error">{{ locationFormError }}</span>
+      </div>
+    </form>
+
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>{{ 'admin.locationName' | t }}</th>
+            <th>{{ 'admin.locationAddress' | t }}</th>
+            <th>{{ 'admin.vipServicesAvailable' | t }}</th>
+            <th>{{ 'admin.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let location of locations">
+            <td>{{ location.name }}</td>
+            <td>{{ location.address || ('admin.noAddress' | t) }}</td>
+            <td>{{ location.vipServiceAvailable ? ('admin.yes' | t) : ('admin.no' | t) }}</td>
+            <td class="actions">
+              <button class="btn-link" type="button" (click)="editLocation(location)">{{ 'admin.edit' | t }}</button>
+              <button class="btn-link danger" type="button" (click)="deleteLocation(location.id)">{{ 'admin.delete' | t }}</button>
             </td>
           </tr>
         </tbody>
@@ -134,50 +395,50 @@
   </section>
 
   <section *ngIf="activeTab === 'vip'" class="tab-content">
-    <h2>VIP requests</h2>
+    <h2>{{ 'admin.vipTab' | t }}</h2>
     <div *ngIf="vipRequests.length === 0" class="empty-state">
-      <p>No pending VIP requests.</p>
+      <p>{{ 'admin.noPendingVip' | t }}</p>
     </div>
     <div class="vip-grid">
       <article *ngFor="let request of vipRequests" class="vip-card">
         <h3>{{ request.name }}</h3>
-        <p class="vip-meta">@{{ request.username }} - {{ request.requestedAt | date:'medium' }}</p>
+        <p class="vip-meta">&#64;{{ request.username }} - {{ request.requestedAt | date:'medium' }}</p>
         <p class="vip-note">{{ request.message }}</p>
         <div class="vip-actions">
-          <button class="btn-primary" (click)="approveVip(request)">Approve</button>
-          <button class="btn-outline" (click)="rejectVip(request)">Reject</button>
+          <button class="btn-primary" type="button" (click)="approveVip(request)">{{ 'admin.approve' | t }}</button>
+          <button class="btn-outline" type="button" (click)="rejectVip(request)">{{ 'admin.reject' | t }}</button>
         </div>
       </article>
     </div>
   </section>
 
   <section *ngIf="activeTab === 'admins'" class="tab-content">
-    <h2>Create new admin</h2>
+    <h2>{{ 'admin.createAdmin' | t }}</h2>
     <form [formGroup]="adminForm" (ngSubmit)="createAdmin()" class="form-section">
       <div class="form-grid">
         <div class="form-field">
-          <label>Username</label>
-          <input formControlName="username" placeholder="admin.user" />
+          <label>{{ 'admin.username' | t }}</label>
+          <input formControlName="username" />
         </div>
         <div class="form-field">
-          <label>Password</label>
-          <input type="password" formControlName="password" placeholder="********" />
+          <label>{{ 'admin.password' | t }}</label>
+          <input type="password" formControlName="password" />
         </div>
         <div class="form-field">
-          <label>Name</label>
-          <input formControlName="name" placeholder="Admin Name" />
+          <label>{{ 'admin.name' | t }}</label>
+          <input formControlName="name" />
         </div>
         <div class="form-field">
-          <label>Email</label>
-          <input formControlName="email" placeholder="admin@email.com" />
+          <label>{{ 'admin.email' | t }}</label>
+          <input formControlName="email" type="email" />
         </div>
         <div class="form-field">
-          <label>Phone</label>
-          <input formControlName="phone" placeholder="+1 555 0100" />
+          <label>{{ 'admin.phone' | t }}</label>
+          <input formControlName="phone" />
         </div>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn-primary">Create admin</button>
+        <button class="btn-primary" type="submit">{{ 'admin.createAdminBtn' | t }}</button>
         <span *ngIf="adminFormError" class="form-error">{{ adminFormError }}</span>
       </div>
     </form>

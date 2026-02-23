@@ -16,7 +16,10 @@ export class BookingService {
   }
 
   createBooking(booking: BookingInputDTO): Observable<any> {
-    return this.http.post(this.apiUrl, booking, { headers: this.getHeaders() });
+    return this.http.post(this.apiUrl, booking, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   getBookingById(id: number): Observable<BookingOutputDTO> {
@@ -28,10 +31,16 @@ export class BookingService {
   }
 
   updateBooking(id: number, booking: BookingInputDTO): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, booking, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/${id}`, booking, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   deleteBooking(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 }

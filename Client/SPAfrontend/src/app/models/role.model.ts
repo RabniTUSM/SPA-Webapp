@@ -2,6 +2,7 @@ export interface RoleInputDTO {
   name: string;
   hasAdminAccess: boolean;
   description?: string;
+  viewType?: 'customer' | 'vip' | 'employee' | 'admin';
 }
 
 export interface RoleOutputDTO {
@@ -9,5 +10,5 @@ export interface RoleOutputDTO {
   name: string;
   hasAdminAccess: boolean;
   description: string;
+  viewType: 'customer' | 'vip' | 'employee' | 'admin';
 }
-

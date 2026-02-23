@@ -16,19 +16,25 @@ export class UserService {
   }
 
   register(user: UserInputDTO): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, user);
+    return this.http.post(`${this.apiUrl}/register`, user, { responseType: 'text' });
   }
 
   createAdmin(admin: CreateAdminDTO): Observable<any> {
-    return this.http.post(`${this.apiUrl}/admin`, admin, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/admin`, admin, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   adminSaveUser(adminUser: AdminUserInputDTO): Observable<any> {
-    return this.http.post(`${this.apiUrl}/admin/user`, adminUser, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/admin/user`, adminUser, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   getUserByUsername(username: string): Observable<UserOutputDTO> {
-    return this.http.get<UserOutputDTO>(`${this.apiUrl}/${username}`, { headers: this.getHeaders() });
+    return this.http.get<UserOutputDTO>(`${this.apiUrl}/${encodeURIComponent(username)}`, { headers: this.getHeaders() });
   }
 
   getAllUsers(): Observable<UserOutputDTO[]> {
@@ -36,10 +42,16 @@ export class UserService {
   }
 
   updateUser(username: string, user: UserInputDTO): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${username}`, user, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/${username}`, user, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   deleteUser(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 }

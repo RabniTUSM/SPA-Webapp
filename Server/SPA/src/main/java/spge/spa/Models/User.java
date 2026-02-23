@@ -1,8 +1,6 @@
 package spge.spa.Models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
@@ -20,8 +18,6 @@ public class User {
     private String email;
     @Column
     private String phone;
-    @Column
-    private boolean isVipMember=false;
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role = new Role();
@@ -69,15 +65,6 @@ public class User {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-
-    public boolean getVipMember() {
-        return isVipMember;
-    }
-
-    public void setVipMember(boolean vipMember) {
-        isVipMember = vipMember;
-    }
-
 
     public void setRole(Role role) {
         this.role = role;

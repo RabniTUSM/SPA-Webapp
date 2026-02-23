@@ -9,10 +9,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -20,13 +22,14 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 public class SecurityConfig {
     @Autowired
-    private UserDetailsService userDetailsService;
-    @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        DelegatingPasswordEncoder delegatingPasswordEncoder =
+                (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        delegatingPasswordEncoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
+        return delegatingPasswordEncoder;
     }
 
     @Bean
@@ -35,11 +38,15 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/SPA/User/register", "/SPA/User/login", "/SPA/User/guest-login", "/hello", "/SPA/Service/export/pdf").permitAll()
-                .requestMatchers("/SPA/User/admin/**").hasRole("ADMIN")
-                .requestMatchers("/SPA/Role/**").hasRole("ADMIN")
-                .requestMatchers("/SPA/Booking/**").hasAnyRole("ADMIN", "EMPLOYEE", "CUSTOMER")
-                .requestMatchers("/SPA/Location/**", "/SPA/Service/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                .requestMatchers("/User/register", "/User/login", "/User/guest-login", "/User/bootstrap-admin", "/hello").permitAll()
+                .requestMatchers(HttpMethod.GET, "/Role/views").authenticated()
+                .requestMatchers(HttpMethod.GET, "/Location/**", "/Service/**").hasAnyRole("ADMIN", "EMPLOYEE", "CUSTOMER", "VIP")
+                .requestMatchers("/User/admin/**").hasRole("ADMIN")
+                .requestMatchers("/Role/**").hasRole("ADMIN")
+                .requestMatchers("/VipRequest/pending", "/VipRequest/*/approve", "/VipRequest/*/reject").hasRole("ADMIN")
+                .requestMatchers("/VipRequest/**").authenticated()
+                .requestMatchers("/Booking/**").hasAnyRole("ADMIN", "EMPLOYEE", "CUSTOMER", "VIP")
+                .requestMatchers("/Location/**", "/Service/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .cors(withDefaults());

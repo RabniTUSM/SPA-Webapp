@@ -5,6 +5,7 @@ public class RoleOutputDTO {
     private String name;
     private boolean hasAdminAccess;
     private String description;
+    private String viewType;
 
     public Long getId() {
         return id;
@@ -37,5 +38,12 @@ public class RoleOutputDTO {
     public void setDescription(String description) {
         this.description = description;
     }
-}
 
+    public String getViewType() {
+        return viewType;
+    }
+
+    public void setViewType(String viewType) {
+        this.viewType = viewType;
+    }
+}

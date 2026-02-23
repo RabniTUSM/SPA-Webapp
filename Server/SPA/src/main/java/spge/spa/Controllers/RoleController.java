@@ -10,7 +10,7 @@ import spge.spa.Services.RoleService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/SPA/Role")
+@RequestMapping("/Role")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class RoleController {
     @Autowired
@@ -44,4 +44,3 @@ public class RoleController {
         return ResponseEntity.ok("Role deleted successfully");
     }
 }
-

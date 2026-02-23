@@ -7,11 +7,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import spge.spa.Security.JwtUtil;
 import spge.spa.Repositories.UserRepository;
 
+import org.springframework.http.HttpStatus;
+import java.util.Locale;
+
 @RestController
-@RequestMapping("/SPA/User")
+@RequestMapping("/User")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AuthController {
     @Autowired
@@ -23,10 +27,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        if (request == null || request.getUsername() == null || request.getUsername().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
+        }
+        String normalizedUsername = request.getUsername().trim().toLowerCase(Locale.ROOT);
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(normalizedUsername, request.getPassword()));
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        var user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        var user = userRepository.findByUsernameIgnoreCase(userDetails.getUsername()).orElseThrow();
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().getName());
         return ResponseEntity.ok(new JwtResponse(token, user.getRole().getName()));
     }
@@ -44,6 +52,7 @@ public class AuthController {
     public static class JwtResponse {
         private String token;
         private String role;
+
         public JwtResponse(String token, String role) {
             this.token = token;
             this.role = role;
@@ -54,8 +63,8 @@ public class AuthController {
 
     @PostMapping("/guest-login")
     public ResponseEntity<JwtResponse> guestLogin() {
-        // Create a guest token with CUSTOMER role (no persistence)
-        String guestToken = jwtUtil.generateToken("guest_" + System.currentTimeMillis(), "CUSTOMER");
+        // Keep a stable guest principal so JWT auth can work without DB user persistence.
+        String guestToken = jwtUtil.generateToken("guest", "CUSTOMER");
         return ResponseEntity.ok(new JwtResponse(guestToken, "CUSTOMER"));
     }
 }

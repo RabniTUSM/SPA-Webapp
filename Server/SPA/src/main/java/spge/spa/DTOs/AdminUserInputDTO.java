@@ -20,7 +20,6 @@ public class AdminUserInputDTO {
     @NotBlank
     @Size(min = 10, max = 10)
     private String phone;
-    private boolean isVipMember;
     @NotBlank
     private String role;
 
@@ -62,14 +61,6 @@ public class AdminUserInputDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public boolean isVipMember() {
-        return isVipMember;
-    }
-
-    public void setVipMember(boolean vipMember) {
-        isVipMember = vipMember;
     }
 
     public String getRole() {

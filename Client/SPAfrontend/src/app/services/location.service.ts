@@ -16,7 +16,10 @@ export class LocationService {
   }
 
   createLocation(location: LocationInputDTO): Observable<any> {
-    return this.http.post(this.apiUrl, location, { headers: this.getHeaders() });
+    return this.http.post(this.apiUrl, location, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   getLocationById(id: number): Observable<LocationOutputDTO> {
@@ -28,10 +31,16 @@ export class LocationService {
   }
 
   updateLocation(id: number, location: LocationInputDTO): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, location, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/${id}`, location, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 
   deleteLocation(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
   }
 }
