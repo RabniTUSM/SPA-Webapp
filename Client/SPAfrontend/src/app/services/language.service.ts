@@ -229,6 +229,14 @@ const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'admin.confirmDeleteService': 'Да изтрия ли тази услуга?',
     'admin.serviceDeleted': 'Услугата е изтрита.',
     'admin.serviceDeleteFailed': 'Услугата не може да бъде изтрита.',
+    'admin.priceChartSelect': 'Избери PDF ценоразпис',
+    'admin.priceChartUpload': 'Качи PDF',
+    'admin.priceChartDownload': 'Изтегли PDF',
+    'admin.priceChartOnlyPdf': 'Можете да качвате само PDF файл.',
+    'admin.priceChartPickFile': 'Изберете PDF файл за качване.',
+    'admin.priceChartUploadSuccess': 'Ценоразписът е качен успешно.',
+    'admin.priceChartUploadFailed': 'Качването на ценоразписа не бе успешно.',
+    'admin.priceChartNotFound': 'Няма качен ценоразпис за изтегляне.',
     'admin.locationsManager': 'Управление на локации',
     'admin.locationName': 'Име на локация',
     'admin.locationAddress': 'Адрес',
@@ -265,6 +273,7 @@ const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'vip.completeFields': 'Попълнете всички полета за резервация.',
     'vip.bookingFailed': 'Резервацията не бе успешна. Опитайте отново.',
     'vip.cancelConfirm': 'Да отменя ли тази резервация?',
+    'vip.priceChartUnavailable': 'Ценоразписът все още не е качен.',
 
     'redirect.preparing': 'Подготвяме вашия профил...'
   },
@@ -491,6 +500,14 @@ const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'admin.confirmDeleteService': 'Delete this service?',
     'admin.serviceDeleted': 'Service deleted successfully.',
     'admin.serviceDeleteFailed': 'Service could not be deleted.',
+    'admin.priceChartSelect': 'Select price chart PDF',
+    'admin.priceChartUpload': 'Upload PDF',
+    'admin.priceChartDownload': 'Download PDF',
+    'admin.priceChartOnlyPdf': 'Only PDF files are allowed.',
+    'admin.priceChartPickFile': 'Pick a PDF file to upload.',
+    'admin.priceChartUploadSuccess': 'Price chart uploaded successfully.',
+    'admin.priceChartUploadFailed': 'Price chart upload failed.',
+    'admin.priceChartNotFound': 'No uploaded price chart found.',
     'admin.locationsManager': 'Locations management',
     'admin.locationName': 'Location name',
     'admin.locationAddress': 'Address',
@@ -527,6 +544,7 @@ const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'vip.completeFields': 'Complete all booking fields.',
     'vip.bookingFailed': 'Booking failed. Please try again.',
     'vip.cancelConfirm': 'Cancel this booking?',
+    'vip.priceChartUnavailable': 'Price chart is not uploaded yet.',
 
     'redirect.preparing': 'Preparing your profile...'
   }

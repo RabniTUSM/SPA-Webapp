@@ -6,7 +6,7 @@
       <p class="lead">Create, price, and tag services for VIP access.</p>
     </div>
     <div class="header-actions">
-      <button class="btn-outline" (click)="exportPdfServices()">Export PDF</button>
+      <button class="btn-outline" (click)="exportPdfServices()">Download price chart PDF</button>
     </div>
   </header>
 
@@ -27,7 +27,7 @@
           <textarea id="serviceDescription" formControlName="description" placeholder="Describe the experience."></textarea>
         </div>
         <label class="checkbox">
-          <input type="checkbox" formControlName="isVipOnly" />
+          <input type="checkbox" formControlName="vipOnly" />
           VIP only service
         </label>
       </div>
@@ -60,8 +60,8 @@
           <tr *ngFor="let service of services">
             <td>{{ service.name }}</td>
             <td>{{ service.description || '-' }}</td>
-            <td>${{ service.price | number:'1.2-2' }}</td>
-            <td>{{ service.isVipOnly ? 'Yes' : 'No' }}</td>
+            <td>{{ service.price | currency:'EUR':'symbol':'1.2-2' }}</td>
+            <td>{{ service.vipOnly ? 'Yes' : 'No' }}</td>
             <td class="actions">
               <button class="btn-link" (click)="editService(service)">Edit</button>
               <button class="btn-link danger" (click)="deleteService(service.id)">Delete</button>

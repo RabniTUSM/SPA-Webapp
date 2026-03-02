@@ -137,10 +137,10 @@
 }
 
 .section-note {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: #7b6050;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
 .booking-section,
@@ -165,9 +165,9 @@
 
 .form-field label {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: #765b4a;
   margin-bottom: 6px;
 }
@@ -176,11 +176,11 @@
 .form-field input,
 textarea {
   width: 100%;
-  padding: 10px 12px;
+  padding: 14px 16px;
   border-radius: 12px;
   border: 1px solid rgba(87, 64, 44, 0.2);
   background: var(--field-bg);
-  font-size: 0.95rem;
+  font-size: 1.06rem;
   color: #2d231c;
 }
 
@@ -190,8 +190,8 @@ textarea {
 
 .session-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 12px;
 }
 
 .session-grid.disabled {
@@ -206,12 +206,13 @@ textarea {
   border-radius: 14px;
   background: var(--surface-plain);
   color: #3b2d24;
-  padding: 10px 12px;
+  padding: 14px 16px;
   cursor: pointer;
   display: grid;
   justify-items: start;
   gap: 4px;
   font-weight: 600;
+  font-size: 1rem;
   text-align: left;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -221,12 +222,11 @@ textarea {
 }
 
 .session-chip small {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   color: #8d5a42;
 }
 
 .session-chip:hover:not(.unavailable) {
-  transform: translateY(-1px);
   border-color: rgba(196, 93, 59, 0.4);
   box-shadow: 0 8px 18px rgba(102, 65, 40, 0.12);
   background: var(--surface-plain);
@@ -250,15 +250,16 @@ textarea {
 
 .session-hint {
   margin: 8px 0 0;
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   color: #7c5f4f;
 }
 
 .readonly-field {
-  padding: 10px 12px;
+  padding: 14px 16px;
   background: rgba(255, 255, 255, 0.8);
   border-radius: 12px;
   border: 1px dashed rgba(87, 64, 44, 0.3);
+  font-size: 1.06rem;
 }
 
 .form-actions {
@@ -273,16 +274,17 @@ textarea {
   background: linear-gradient(120deg, #c45d3b, #d9923f);
   color: #fff6ec;
   border: none;
-  padding: 12px 22px;
+  padding: 14px 26px;
   border-radius: 999px;
   font-weight: 600;
+  font-size: 1.02rem;
   cursor: pointer;
   box-shadow: 0 12px 25px rgba(124, 70, 40, 0.2);
   transition: transform 0.2s ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(124, 70, 40, 0.26);
 }
 
 .btn-primary:disabled {
@@ -342,7 +344,8 @@ textarea {
   background: transparent;
   border: 1px solid rgba(107, 83, 68, 0.4);
   color: #5b4436;
-  padding: 8px 14px;
+  padding: 11px 16px;
+  font-size: 0.98rem;
   border-radius: 999px;
   cursor: pointer;
 }

@@ -42,7 +42,7 @@
           <select id="serviceId" formControlName="serviceId">
             <option value="" disabled>{{ 'customer.selectService' | t }}</option>
             <option *ngFor="let service of services" [value]="service.id">
-              {{ service.name }} - ${{ service.price | number:'1.2-2' }}
+              {{ service.name }} - {{ service.price | currency:'EUR':'symbol':'1.2-2' }}
             </option>
           </select>
         </div>

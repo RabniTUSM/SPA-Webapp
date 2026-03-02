@@ -1,10 +1,13 @@
 package spge.spa.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import spge.spa.DTOs.SpaServiceInputDTO;
-import spge.spa.Services.PdfExportService;
+import spge.spa.Services.PriceChartStorageService;
 import spge.spa.Services.ServicesService;
 
 @RestController
@@ -12,11 +15,11 @@ import spge.spa.Services.ServicesService;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class SpaServiceController {
     private final ServicesService servicesService;
-    @Autowired
-    private PdfExportService pdfExportService;
+    private final PriceChartStorageService priceChartStorageService;
 
-    public SpaServiceController(ServicesService servicesService) {
+    public SpaServiceController(ServicesService servicesService, PriceChartStorageService priceChartStorageService) {
         this.servicesService = servicesService;
+        this.priceChartStorageService = priceChartStorageService;
     }
 
     @PostMapping
@@ -47,16 +50,18 @@ public class SpaServiceController {
         return ResponseEntity.ok("Service deleted successfully");
     }
 
-    @GetMapping("/export/pdf")
-    public ResponseEntity<byte[]> exportServicesPdf() {
-        try {
-            byte[] pdfBytes = pdfExportService.generateServicesPdf();
-            return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=spa_services.pdf")
-                    .header("Content-Type", "application/pdf")
-                    .body(pdfBytes);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    @PostMapping(value = "/price-chart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadPriceChart(@RequestParam("file") MultipartFile file) {
+        priceChartStorageService.save(file);
+        return ResponseEntity.ok("Price chart uploaded successfully");
+    }
+
+    @GetMapping("/price-chart")
+    public ResponseEntity<Resource> downloadPriceChart() {
+        Resource pdfResource = priceChartStorageService.load();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"price-chart.pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfResource);
     }
 }

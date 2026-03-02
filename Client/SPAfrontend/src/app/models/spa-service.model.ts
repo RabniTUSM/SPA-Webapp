@@ -2,7 +2,7 @@ export interface SpaServiceInputDTO {
   name: string;
   description?: string;
   price: number;
-  isVipOnly: boolean;
+  vipOnly: boolean;
 }
 
 export interface SpaServiceOutputDTO {
@@ -10,6 +10,5 @@ export interface SpaServiceOutputDTO {
   name: string;
   description: string;
   price: number;
-  isVipOnly: boolean;
+  vipOnly: boolean;
 }
-

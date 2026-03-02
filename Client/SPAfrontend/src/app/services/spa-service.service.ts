@@ -44,8 +44,17 @@ export class SpaServiceService {
     });
   }
 
-  exportServicesPdf(): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/export/pdf`, {
+  uploadPriceChart(file: File): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/price-chart`, formData, {
+      headers: this.getHeaders(),
+      responseType: 'text'
+    });
+  }
+
+  downloadPriceChart(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/price-chart`, {
       headers: this.getHeaders(),
       responseType: 'blob'
     });

@@ -94,7 +94,6 @@ import { ThemeService } from './services/theme.service';
     }
 
     .nav-btn:hover {
-      transform: translateY(-1px);
       border-color: rgba(40, 105, 98, 0.5);
       box-shadow: 0 8px 16px rgba(25, 77, 69, 0.16);
     }

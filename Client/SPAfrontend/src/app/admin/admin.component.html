@@ -203,14 +203,14 @@
           <label>{{ 'admin.serviceLabel' | t }}</label>
           <select formControlName="serviceId">
             <option value="" disabled>{{ 'admin.selectService' | t }}</option>
-            <option *ngFor="let service of services" [value]="service.id">{{ service.name }} - ${{ service.price | number:'1.2-2' }}</option>
+            <option *ngFor="let service of services" [value]="service.id">{{ service.name }} - {{ service.price | currency:'EUR':'symbol':'1.2-2' }}</option>
           </select>
         </div>
         <div class="form-field">
           <label>{{ 'admin.locationLabel' | t }}</label>
           <select formControlName="locationId">
             <option value="" disabled>{{ 'admin.selectLocation' | t }}</option>
-            <option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</option>
+            <option *ngFor="let location of availableBookingLocations" [value]="location.id">{{ location.name }}</option>
           </select>
         </div>
         <div class="form-field">
@@ -282,10 +282,16 @@
   <section *ngIf="activeTab === 'services'" class="tab-content">
     <div class="section-header">
       <h2>{{ 'admin.servicesManager' | t }}</h2>
-      <div class="section-actions">
-        <span class="section-note">{{ services.length }} {{ 'nav.services' | t }}</span>
-        <button class="btn-outline" type="button" (click)="exportServicesPdf()">{{ 'vip.downloadMenu' | t }}</button>
-      </div>
+      <span class="section-note">{{ services.length }} {{ 'nav.services' | t }}</span>
+    </div>
+    <div class="price-chart-actions">
+      <label class="price-chart-picker">
+        <span>{{ 'admin.priceChartSelect' | t }}</span>
+        <input type="file" accept="application/pdf,.pdf" (change)="onPriceChartFileSelected($event)" />
+      </label>
+      <button class="btn-primary" type="button" (click)="uploadPriceChart()">{{ 'admin.priceChartUpload' | t }}</button>
+      <button class="btn-outline" type="button" (click)="downloadPriceChart()">{{ 'admin.priceChartDownload' | t }}</button>
+      <span class="section-note" *ngIf="selectedPriceChartFile">{{ selectedPriceChartFile.name }}</span>
     </div>
 
     <form [formGroup]="serviceForm" (ngSubmit)="saveService()" class="form-section">
@@ -303,7 +309,7 @@
           <textarea formControlName="description"></textarea>
         </div>
         <label class="checkbox">
-          <input type="checkbox" formControlName="isVipOnly" />
+          <input type="checkbox" formControlName="vipOnly" />
           {{ 'admin.vipOnly' | t }}
         </label>
       </div>
@@ -329,8 +335,8 @@
           <tr *ngFor="let service of services">
             <td>{{ service.name }}</td>
             <td>{{ service.description || ('admin.noDescription' | t) }}</td>
-            <td>${{ service.price | number:'1.2-2' }}</td>
-            <td>{{ service.isVipOnly ? ('admin.yes' | t) : ('admin.no' | t) }}</td>
+            <td>{{ service.price | currency:'EUR':'symbol':'1.2-2' }}</td>
+            <td>{{ service.vipOnly ? ('admin.yes' | t) : ('admin.no' | t) }}</td>
             <td class="actions">
               <button class="btn-link" type="button" (click)="editService(service)">{{ 'admin.edit' | t }}</button>
               <button class="btn-link danger" type="button" (click)="deleteService(service.id)">{{ 'admin.delete' | t }}</button>

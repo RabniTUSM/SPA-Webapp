@@ -27,7 +27,7 @@
             <select id="vipService" formControlName="serviceId">
               <option value="" disabled>{{ 'customer.selectService' | t }}</option>
               <option *ngFor="let service of services" [value]="service.id">
-                {{ service.name }} - ${{ getVipPrice(service.price) | number:'1.2-2' }}
+                {{ service.name }} - {{ getVipPrice(service.price) | currency:'EUR':'symbol':'1.2-2' }}
               </option>
             </select>
           </div>
@@ -102,9 +102,9 @@
         </div>
         <p>{{ service.description }}</p>
         <div class="price-stack">
-          <span class="original">${{ service.price | number:'1.2-2' }}</span>
-          <span class="vip-price">${{ getVipPrice(service.price) | number:'1.2-2' }}</span>
-          <span class="savings">{{ 'vip.save' | t }} ${{ getSavings(service.price) | number:'1.2-2' }}</span>
+          <span class="original">{{ service.price | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span class="vip-price">{{ getVipPrice(service.price) | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span class="savings">{{ 'vip.save' | t }} {{ getSavings(service.price) | currency:'EUR':'symbol':'1.2-2' }}</span>
         </div>
       </article>
     </div>

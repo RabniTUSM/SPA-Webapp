@@ -22,7 +22,7 @@ export class SpaServiceComponent implements OnInit {
       name: ['', Validators.required],
       description: [''],
       price: [0, [Validators.required, Validators.min(0)]],
-      isVipOnly: [false]
+      vipOnly: [false]
     });
   }
 
@@ -46,7 +46,7 @@ export class SpaServiceComponent implements OnInit {
       : this.spaService.createService(payload);
     request.subscribe({
       next: () => {
-        this.serviceForm.reset({ price: 0, isVipOnly: false });
+        this.serviceForm.reset({ price: 0, vipOnly: false });
         this.editingId = null;
         this.loadServices();
       },
@@ -62,13 +62,13 @@ export class SpaServiceComponent implements OnInit {
       name: service.name,
       description: service.description,
       price: service.price,
-      isVipOnly: service.isVipOnly
+      vipOnly: service.vipOnly
     });
   }
 
   cancelEdit() {
     this.editingId = null;
-    this.serviceForm.reset({ price: 0, isVipOnly: false });
+    this.serviceForm.reset({ price: 0, vipOnly: false });
   }
 
   deleteService(id: number) {
@@ -77,12 +77,17 @@ export class SpaServiceComponent implements OnInit {
   }
 
   exportPdfServices() {
-    this.spaService.exportServicesPdf().subscribe(data => {
-      const url = window.URL.createObjectURL(data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'spa_services.pdf';
-      link.click();
+    this.spaService.downloadPriceChart().subscribe({
+      next: data => {
+        const url = window.URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'price-chart.pdf';
+        link.click();
+      },
+      error: () => {
+        this.formError = 'Price chart PDF is not uploaded yet.';
+      }
     });
   }
 }

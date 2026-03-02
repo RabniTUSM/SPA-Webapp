@@ -117,7 +117,7 @@ export class CustomerComponent implements OnInit {
 
   private loadServices() {
     this.spaService.getAllServices().subscribe({
-      next: services => this.services = services.filter(service => !service.isVipOnly),
+      next: services => this.services = services.filter(service => !service.vipOnly),
       error: () => this.services = []
     });
   }

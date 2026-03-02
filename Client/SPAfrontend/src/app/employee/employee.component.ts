@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { BookingService } from '../services/booking.service';
 import { BookingOutputDTO } from '../models/booking.model';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 import { TranslatePipe } from '../pipes/t.pipe';
 import { LanguageService } from '../services/language.service';
+import { catchError, forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-employee',
@@ -20,12 +21,15 @@ import { LanguageService } from '../services/language.service';
   ],
   styleUrls: ['./employee.component.scss']
 })
-export class EmployeeComponent implements OnInit {
+export class EmployeeComponent implements OnInit, OnDestroy {
   upcomingBookings: BookingOutputDTO[] = [];
   allBookings: BookingOutputDTO[] = [];
   filterType = 'upcoming';
   groupedBookings: { dayLabel: string; bookings: BookingOutputDTO[] }[] = [];
   employeeName = '';
+  private loadAttempt = 0;
+  private readonly maxLoadAttempts = 5;
+  private retryTimeoutId: number | null = null;
 
   constructor(
     private bookingService: BookingService,
@@ -35,28 +39,45 @@ export class EmployeeComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadEmployeeProfile();
-    this.loadBookings();
+    this.loadSchedule();
   }
 
-  loadEmployeeProfile() {
+  ngOnDestroy(): void {
+    this.clearRetry();
+  }
+
+  private loadSchedule(): void {
     const username = this.auth.getUsername();
-    if (!username) return;
-    this.userService.getUserByUsername(username).subscribe({
-      next: user => {
-        this.employeeName = user.name;
-        this.filterBookings();
-      },
-      error: () => {
-        this.employeeName = '';
-      }
-    });
-  }
-
-  loadBookings() {
-    this.bookingService.getAllBookings().subscribe(data => {
-      this.allBookings = data;
+    if (!username) {
+      this.employeeName = '';
+      this.allBookings = [];
       this.filterBookings();
+      return;
+    }
+
+    forkJoin({
+      user: this.userService.getUserByUsername(username).pipe(catchError(() => of(null))),
+      bookings: this.bookingService.getAllBookings().pipe(catchError(() => of(null)))
+    }).subscribe(({ user, bookings }) => {
+      const profileLoaded = !!user;
+      const bookingsLoaded = Array.isArray(bookings);
+
+      if (user) {
+        this.employeeName = user.name;
+      }
+      if (bookingsLoaded) {
+        this.allBookings = bookings;
+      }
+
+      this.filterBookings();
+
+      if ((!profileLoaded || !bookingsLoaded) && this.loadAttempt < this.maxLoadAttempts) {
+        this.scheduleRetry();
+        return;
+      }
+
+      this.loadAttempt = 0;
+      this.clearRetry();
     });
   }
 
@@ -76,6 +97,22 @@ export class EmployeeComponent implements OnInit {
 
   onFilterChange() {
     this.filterBookings();
+  }
+
+  private scheduleRetry(): void {
+    this.loadAttempt += 1;
+    this.clearRetry();
+    if (typeof window === 'undefined') {
+      return;
+    }
+    this.retryTimeoutId = window.setTimeout(() => this.loadSchedule(), 700);
+  }
+
+  private clearRetry(): void {
+    if (this.retryTimeoutId !== null) {
+      clearTimeout(this.retryTimeoutId);
+      this.retryTimeoutId = null;
+    }
   }
 
   getTimeRemaining(startTime: string): string {

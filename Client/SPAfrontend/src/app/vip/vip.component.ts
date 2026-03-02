@@ -8,7 +8,7 @@ import { SpaServiceOutputDTO } from '../models/spa-service.model';
 import { BookingInputDTO, BookingOutputDTO } from '../models/booking.model';
 import { LocationOutputDTO } from '../models/location.model';
 import { UserOutputDTO } from '../models/user.model';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '../pipes/t.pipe';
 import { LanguageService } from '../services/language.service';
@@ -28,7 +28,6 @@ interface TimeSlotPreset {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    DecimalPipe,
     DatePipe,
     TranslatePipe
   ],
@@ -193,12 +192,17 @@ export class VipComponent implements OnInit {
   }
 
   exportPdfServices() {
-    this.serviceService.exportServicesPdf().subscribe(data => {
-      const url = window.URL.createObjectURL(data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'spa_services.pdf';
-      link.click();
+    this.serviceService.downloadPriceChart().subscribe({
+      next: data => {
+        const url = window.URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'price-chart.pdf';
+        link.click();
+      },
+      error: () => {
+        this.toast.error(this.language.t('vip.priceChartUnavailable'));
+      }
     });
   }
 

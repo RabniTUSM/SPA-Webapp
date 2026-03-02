@@ -44,6 +44,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   bookings: BookingOutputDTO[] = [];
   services: SpaServiceOutputDTO[] = [];
   locations: LocationOutputDTO[] = [];
+  availableBookingLocations: LocationOutputDTO[] = [];
   customers: UserOutputDTO[] = [];
   employees: UserOutputDTO[] = [];
   vipRequests: VipRequest[] = [];
@@ -59,6 +60,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   editingServiceId: number | null = null;
   editingLocationId: number | null = null;
   editingUsername: string | null = null;
+  selectedPriceChartFile: File | null = null;
   isCreatingUser = false;
 
   roleForm: FormGroup;
@@ -149,7 +151,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       name: ['', Validators.required],
       description: [''],
       price: [0, [Validators.required, Validators.min(0)]],
-      isVipOnly: [false]
+      vipOnly: [false]
     });
 
     this.locationForm = this.fb.group({
@@ -181,6 +183,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
     this.bookingForm.get('employeeId')?.valueChanges.subscribe(() => this.clearBookingSlotSelection());
     this.bookingForm.get('bookingDate')?.valueChanges.subscribe(() => this.clearBookingSlotSelection());
+    this.bookingForm.get('serviceId')?.valueChanges.subscribe(() => this.updateAvailableBookingLocations());
   }
 
   ngOnDestroy(): void {
@@ -546,6 +549,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       bookingDate: this.toDateOnly(booking.startTime),
       timeSlot: this.resolveSlotValue(booking.startTime, booking.endTime)
     });
+    this.updateAvailableBookingLocations();
 
     this.activeTab = 'bookings';
   }
@@ -574,6 +578,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       bookingDate: '',
       timeSlot: ''
     });
+    this.updateAvailableBookingLocations();
   }
 
   get bookingCanChooseSlots(): boolean {
@@ -632,7 +637,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       name: service.name,
       description: service.description || '',
       price: service.price,
-      isVipOnly: service.isVipOnly
+      vipOnly: service.vipOnly
     });
     this.activeTab = 'services';
   }
@@ -644,7 +649,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       name: '',
       description: '',
       price: 0,
-      isVipOnly: false
+      vipOnly: false
     });
   }
 
@@ -661,13 +666,55 @@ export class AdminComponent implements OnInit, OnDestroy {
     });
   }
 
-  exportServicesPdf(): void {
-    this.spaService.exportServicesPdf().subscribe(data => {
-      const url = window.URL.createObjectURL(data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'spa_services.pdf';
-      link.click();
+  onPriceChartFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0) ?? null;
+    if (!file) {
+      this.selectedPriceChartFile = null;
+      return;
+    }
+    const fileName = file.name.toLowerCase();
+    const isPdf = file.type.toLowerCase().includes('pdf') || fileName.endsWith('.pdf');
+    if (!isPdf) {
+      this.selectedPriceChartFile = null;
+      if (input) {
+        input.value = '';
+      }
+      this.toast.error(this.t('admin.priceChartOnlyPdf'));
+      return;
+    }
+    this.selectedPriceChartFile = file;
+  }
+
+  uploadPriceChart(): void {
+    if (!this.selectedPriceChartFile) {
+      this.toast.error(this.t('admin.priceChartPickFile'));
+      return;
+    }
+    this.spaService.uploadPriceChart(this.selectedPriceChartFile).subscribe({
+      next: () => {
+        this.toast.success(this.t('admin.priceChartUploadSuccess'));
+        this.selectedPriceChartFile = null;
+      },
+      error: err => {
+        const message = this.extractBackendMessage(err) || this.t('admin.priceChartUploadFailed');
+        this.toast.error(message);
+      }
+    });
+  }
+
+  downloadPriceChart(): void {
+    this.spaService.downloadPriceChart().subscribe({
+      next: data => {
+        const url = window.URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'price-chart.pdf';
+        link.click();
+      },
+      error: () => {
+        this.toast.error(this.t('admin.priceChartNotFound'));
+      }
     });
   }
 
@@ -732,6 +779,22 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   private clearBookingSlotSelection(): void {
     this.bookingForm.patchValue({ timeSlot: '' }, { emitEvent: false });
+  }
+
+  private updateAvailableBookingLocations(): void {
+    const serviceId = Number(this.bookingForm.get('serviceId')?.value);
+    const selectedService = this.services.find(service => service.id === serviceId);
+    const vipOnly = Boolean(selectedService?.vipOnly);
+
+    this.availableBookingLocations = vipOnly
+      ? this.locations.filter(location => Boolean(location.vipServiceAvailable))
+      : [...this.locations];
+
+    const selectedLocationId = Number(this.bookingForm.get('locationId')?.value);
+    const hasValidSelection = this.availableBookingLocations.some(location => location.id === selectedLocationId);
+    if (!hasValidSelection) {
+      this.bookingForm.patchValue({ locationId: '' }, { emitEvent: false });
+    }
   }
 
   private isBookingSlotOccupied(slot: TimeSlotPreset): boolean {
@@ -908,5 +971,6 @@ export class AdminComponent implements OnInit, OnDestroy {
       const role = (user.role || '').toUpperCase();
       return role !== 'ADMIN' && role !== 'EMPLOYEE';
     });
+    this.updateAvailableBookingLocations();
   }
 }

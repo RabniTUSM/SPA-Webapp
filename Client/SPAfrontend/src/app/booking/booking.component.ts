@@ -24,6 +24,7 @@ export class BookingComponent implements OnInit {
   employees: UserOutputDTO[] = [];
   services: SpaServiceOutputDTO[] = [];
   locations: LocationOutputDTO[] = [];
+  availableLocations: LocationOutputDTO[] = [];
   editingId: number | null = null;
   formError = '';
 
@@ -49,6 +50,7 @@ export class BookingComponent implements OnInit {
     this.loadUsers();
     this.loadServices();
     this.loadLocations();
+    this.bookingForm.get('serviceId')?.valueChanges.subscribe(() => this.updateAvailableLocations());
   }
 
   loadBookings() {
@@ -67,11 +69,17 @@ export class BookingComponent implements OnInit {
   }
 
   loadServices() {
-    this.spaService.getAllServices().subscribe(data => this.services = data);
+    this.spaService.getAllServices().subscribe(data => {
+      this.services = data;
+      this.updateAvailableLocations();
+    });
   }
 
   loadLocations() {
-    this.locationService.getAllLocations().subscribe(data => this.locations = data);
+    this.locationService.getAllLocations().subscribe(data => {
+      this.locations = data;
+      this.updateAvailableLocations();
+    });
   }
 
   saveBooking() {
@@ -110,11 +118,13 @@ export class BookingComponent implements OnInit {
       startTime: this.toLocalInputValue(booking.startTime),
       endTime: this.toLocalInputValue(booking.endTime)
     });
+    this.updateAvailableLocations();
   }
 
   cancelEdit() {
     this.editingId = null;
     this.bookingForm.reset();
+    this.updateAvailableLocations();
   }
 
   deleteBooking(id: number) {
@@ -127,5 +137,21 @@ export class BookingComponent implements OnInit {
     if (Number.isNaN(date.getTime())) return value;
     const pad = (num: number) => String(num).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  private updateAvailableLocations(): void {
+    const serviceId = Number(this.bookingForm.get('serviceId')?.value);
+    const selectedService = this.services.find(service => service.id === serviceId);
+    const vipOnly = Boolean(selectedService?.vipOnly);
+
+    this.availableLocations = vipOnly
+      ? this.locations.filter(location => Boolean(location.vipServiceAvailable))
+      : [...this.locations];
+
+    const locationId = Number(this.bookingForm.get('locationId')?.value);
+    const hasValidLocation = this.availableLocations.some(location => location.id === locationId);
+    if (!hasValidLocation) {
+      this.bookingForm.patchValue({ locationId: '' }, { emitEvent: false });
+    }
   }
 }
