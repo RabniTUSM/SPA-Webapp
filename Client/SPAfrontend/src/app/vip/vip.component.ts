@@ -193,21 +193,6 @@ export class VipComponent implements OnInit {
     }
   }
 
-  exportPdfServices() {
-    this.serviceService.downloadPriceChart().subscribe({
-      next: data => {
-        const url = window.URL.createObjectURL(data);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'price-chart.pdf';
-        link.click();
-      },
-      error: () => {
-        this.toast.error(this.language.t('vip.priceChartUnavailable'));
-      }
-    });
-  }
-
   get canChooseSlots(): boolean {
     return Boolean(this.bookingForm.get('employeeId')?.value && this.bookingForm.get('bookingDate')?.value);
   }

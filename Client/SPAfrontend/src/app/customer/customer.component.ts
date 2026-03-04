@@ -218,6 +218,21 @@ export class CustomerComponent implements OnInit {
     this.bookingService.deleteBooking(id).subscribe(() => this.loadBookings());
   }
 
+  downloadPriceChart() {
+    this.spaService.downloadPriceChart().subscribe({
+      next: data => {
+        const url = window.URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'price-chart.pdf';
+        link.click();
+      },
+      error: () => {
+        this.toast.error(this.language.t('customer.priceChartUnavailable'));
+      }
+    });
+  }
+
   submitVipRequest() {
     this.vipError = '';
     if (!this.currentUser) {
