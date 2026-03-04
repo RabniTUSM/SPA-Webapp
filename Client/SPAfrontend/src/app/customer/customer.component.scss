@@ -226,7 +226,8 @@ textarea {
   color: #8d5a42;
 }
 
-.session-chip:hover:not(.unavailable) {
+.session-chip:hover:not(.unavailable),
+.session-chip.selected:not(.unavailable) {
   border-color: rgba(196, 93, 59, 0.4);
   box-shadow: 0 8px 18px rgba(102, 65, 40, 0.12);
   background: var(--surface-plain);
@@ -235,12 +236,6 @@ textarea {
 .session-chip:focus-visible:not(.unavailable),
 .session-chip:active:not(.unavailable) {
   background: var(--surface-plain);
-}
-
-.session-chip.selected {
-  border-color: rgba(196, 93, 59, 0.6);
-  box-shadow: 0 0 0 3px rgba(196, 93, 59, 0.16);
-  background: rgba(255, 247, 237, 0.98);
 }
 
 .session-chip.unavailable {

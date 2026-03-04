@@ -226,6 +226,7 @@
               class="session-chip"
               *ngFor="let slot of bookingTimeSlots"
               [class.selected]="bookingForm.get('timeSlot')?.value === slot.value"
+              [attr.aria-pressed]="bookingForm.get('timeSlot')?.value === slot.value"
               [class.unavailable]="slot.unavailable"
               [disabled]="slot.unavailable || !bookingCanChooseSlots"
               (click)="selectBookingSlot(slot.value)"

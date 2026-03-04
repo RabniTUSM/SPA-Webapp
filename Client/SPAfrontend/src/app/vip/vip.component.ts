@@ -35,7 +35,7 @@ interface TimeSlotPreset {
 })
 export class VipComponent implements OnInit {
   services: SpaServiceOutputDTO[] = [];
-  locations: LocationOutputDTO[] = [];
+  allLocations: LocationOutputDTO[] = [];
   employees: UserOutputDTO[] = [];
   myBookings: BookingOutputDTO[] = [];
   allBookings: BookingOutputDTO[] = [];
@@ -82,6 +82,7 @@ export class VipComponent implements OnInit {
     this.loadEmployees();
     this.loadMyBookings();
 
+    this.bookingForm.get('serviceId')?.valueChanges.subscribe(() => this.syncLocationSelectionForService());
     this.bookingForm.get('employeeId')?.valueChanges.subscribe(() => this.clearSlotSelection());
     this.bookingForm.get('bookingDate')?.valueChanges.subscribe(() => this.clearSlotSelection());
   }
@@ -105,7 +106,8 @@ export class VipComponent implements OnInit {
 
   loadLocations() {
     this.locationService.getAllLocations().subscribe(data => {
-      this.locations = data.filter(location => location.vipServiceAvailable);
+      this.allLocations = data;
+      this.syncLocationSelectionForService();
     });
   }
 
@@ -210,6 +212,17 @@ export class VipComponent implements OnInit {
     return Boolean(this.bookingForm.get('employeeId')?.value && this.bookingForm.get('bookingDate')?.value);
   }
 
+  get availableLocations(): LocationOutputDTO[] {
+    const selectedService = this.getSelectedService();
+    if (!selectedService) {
+      return this.allLocations;
+    }
+    if (selectedService.vipOnly) {
+      return this.allLocations.filter(location => location.vipServiceAvailable);
+    }
+    return this.allLocations;
+  }
+
   get timetableSlots(): Array<TimeSlotPreset & { unavailable: boolean; reason: 'occupied' | 'past' | null }> {
     return this.slotPresets.map(slot => {
       const past = this.isSlotInPast(slot);
@@ -223,6 +236,12 @@ export class VipComponent implements OnInit {
   }
 
   selectTimeSlot(slotValue: string): void {
+    const currentValue = this.bookingForm.get('timeSlot')?.value as string | null;
+    if (currentValue === slotValue) {
+      this.bookingForm.patchValue({ timeSlot: '' });
+      return;
+    }
+
     const slot = this.slotPresets.find(item => item.value === slotValue);
     if (!slot || this.isSlotInPast(slot) || this.isSlotOccupied(slot)) {
       return;
@@ -232,6 +251,17 @@ export class VipComponent implements OnInit {
 
   private clearSlotSelection(): void {
     this.bookingForm.patchValue({ timeSlot: '' }, { emitEvent: false });
+  }
+
+  private syncLocationSelectionForService(): void {
+    const locationId = Number(this.bookingForm.get('locationId')?.value);
+    if (!Number.isFinite(locationId)) {
+      return;
+    }
+    const locationStillAllowed = this.availableLocations.some(location => location.id === locationId);
+    if (!locationStillAllowed) {
+      this.bookingForm.patchValue({ locationId: '' }, { emitEvent: false });
+    }
   }
 
   private isSlotOccupied(slot: TimeSlotPreset): boolean {
@@ -272,6 +302,14 @@ export class VipComponent implements OnInit {
       return null;
     }
     return this.employees.find(employee => employee.id === employeeId)?.name ?? null;
+  }
+
+  private getSelectedService(): SpaServiceOutputDTO | null {
+    const serviceId = Number(this.bookingForm.get('serviceId')?.value);
+    if (!Number.isFinite(serviceId)) {
+      return null;
+    }
+    return this.services.find(service => service.id === serviceId) ?? null;
   }
 
   private buildDateTime(date: string, time: string): string {

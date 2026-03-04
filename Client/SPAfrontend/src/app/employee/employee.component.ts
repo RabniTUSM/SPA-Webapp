@@ -3,11 +3,14 @@ import { BookingService } from '../services/booking.service';
 import { BookingOutputDTO } from '../models/booking.model';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 import { TranslatePipe } from '../pipes/t.pipe';
 import { LanguageService } from '../services/language.service';
-import { catchError, forkJoin, of } from 'rxjs';
+import { Subject, catchError, distinctUntilChanged, forkJoin, map, of, takeUntil } from 'rxjs';
+import { UserOutputDTO } from '../models/user.model';
+import { EmployeeResolvedData } from './employee-data.resolver';
 
 @Component({
   selector: 'app-employee',
@@ -27,65 +30,150 @@ export class EmployeeComponent implements OnInit, OnDestroy {
   filterType = 'upcoming';
   groupedBookings: { dayLabel: string; bookings: BookingOutputDTO[] }[] = [];
   employeeName = '';
-  private loadAttempt = 0;
-  private readonly maxLoadAttempts = 5;
-  private retryTimeoutId: number | null = null;
+  private profileLoaded = false;
+  private isLoading = false;
+  private readonly autoRefreshMs = 12000;
+  private autoRefreshId: number | null = null;
+  private lastRefreshAt = 0;
+  private warmupEnabled = true;
+  private warmupAttempts = 0;
+  private readonly warmupMaxAttempts = 10;
+  private warmupTimeoutId: number | null = null;
+  private pendingForcedRefresh = false;
+  private readonly destroy$ = new Subject<void>();
+  private readonly onWindowFocus = () => this.refreshAll();
+  private readonly onVisibilityChange = () => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      this.refreshAll();
+    }
+  };
 
   constructor(
     private bookingService: BookingService,
     private auth: AuthService,
     private userService: UserService,
-    private language: LanguageService
+    private language: LanguageService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.loadSchedule();
+    const resolved: EmployeeResolvedData | undefined = this.route.snapshot.data['employeeData'];
+    if (resolved) {
+      this.applyData(resolved.users, resolved.bookings);
+      const hasCoreData = this.profileLoaded;
+      this.warmupEnabled = !hasCoreData;
+      this.lastRefreshAt = Date.now();
+      if (!hasCoreData) {
+        this.refreshAll(true);
+        this.scheduleWarmupRefresh(500);
+      }
+    } else {
+      this.refreshAll(true);
+      this.scheduleWarmupRefresh(500);
+    }
+
+    let firstSessionEmission = true;
+    this.auth.sessionState$
+      .pipe(
+        map(state => `${state.token ?? ''}|${state.username ?? ''}`),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        if (firstSessionEmission) {
+          firstSessionEmission = false;
+          return;
+        }
+        this.warmupEnabled = true;
+        this.warmupAttempts = 0;
+        this.clearWarmupRefresh();
+        this.refreshAll(true);
+      });
+
+    if (typeof window !== 'undefined') {
+      this.autoRefreshId = window.setInterval(() => this.refreshAll(), this.autoRefreshMs);
+      window.addEventListener('focus', this.onWindowFocus);
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
+    }
   }
 
   ngOnDestroy(): void {
-    this.clearRetry();
+    if (this.autoRefreshId !== null) {
+      clearInterval(this.autoRefreshId);
+      this.autoRefreshId = null;
+    }
+    this.clearWarmupRefresh();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('focus', this.onWindowFocus);
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private loadSchedule(): void {
-    const username = this.auth.getUsername();
-    if (!username) {
-      this.employeeName = '';
-      this.allBookings = [];
-      this.filterBookings();
+  private refreshAll(force = false): void {
+    if (this.isLoading) {
+      if (force) {
+        this.pendingForcedRefresh = true;
+      }
+      return;
+    }
+    const stale = Date.now() - this.lastRefreshAt > this.autoRefreshMs;
+    if (!force && this.lastRefreshAt > 0 && !stale) {
       return;
     }
 
-    forkJoin({
-      user: this.userService.getUserByUsername(username).pipe(catchError(() => of(null))),
-      bookings: this.bookingService.getAllBookings().pipe(catchError(() => of(null)))
-    }).subscribe(({ user, bookings }) => {
-      const profileLoaded = !!user;
-      const bookingsLoaded = Array.isArray(bookings);
-
-      if (user) {
-        this.employeeName = user.name;
-      }
-      if (bookingsLoaded) {
-        this.allBookings = bookings;
-      }
-
+    const username = this.auth.getUsername();
+    if (!username) {
+      this.profileLoaded = false;
+      this.employeeName = '';
+      this.allBookings = [];
       this.filterBookings();
+      this.lastRefreshAt = Date.now();
+      return;
+    }
 
-      if ((!profileLoaded || !bookingsLoaded) && this.loadAttempt < this.maxLoadAttempts) {
-        this.scheduleRetry();
-        return;
+    this.isLoading = true;
+    forkJoin({
+      users: this.userService.getAllUsers().pipe(
+        catchError(() => of([] as UserOutputDTO[]))
+      ),
+      bookings: this.bookingService.getAllBookings().pipe(
+        catchError(() => of([] as BookingOutputDTO[]))
+      )
+    }).subscribe({
+      next: result => {
+        this.applyData(result.users, result.bookings);
+      },
+      error: () => {
+        this.profileLoaded = false;
+        this.employeeName = username;
+        this.allBookings = [];
+        this.filterBookings();
+      },
+      complete: () => {
+        this.isLoading = false;
+        this.handleWarmupAfterRefresh();
+        if (this.pendingForcedRefresh) {
+          this.pendingForcedRefresh = false;
+          this.refreshAll(true);
+        }
       }
-
-      this.loadAttempt = 0;
-      this.clearRetry();
     });
   }
 
   filterBookings() {
+    const employeeNameKey = this.normalize(this.employeeName);
+    const usernameKey = this.normalize(this.auth.getUsername());
     const now = new Date();
-    const scoped = this.employeeName
-      ? this.allBookings.filter(b => b.employeeName === this.employeeName)
-      : [];
+    const scoped = this.allBookings.filter(booking => {
+      const bookingEmployeeName = this.normalize(booking.employeeName);
+      if (!bookingEmployeeName) {
+        return false;
+      }
+      return bookingEmployeeName === employeeNameKey || bookingEmployeeName === usernameKey;
+    });
+
     const filtered = this.filterType === 'upcoming'
       ? scoped.filter(b => new Date(b.startTime) > now)
       : scoped;
@@ -97,22 +185,6 @@ export class EmployeeComponent implements OnInit, OnDestroy {
 
   onFilterChange() {
     this.filterBookings();
-  }
-
-  private scheduleRetry(): void {
-    this.loadAttempt += 1;
-    this.clearRetry();
-    if (typeof window === 'undefined') {
-      return;
-    }
-    this.retryTimeoutId = window.setTimeout(() => this.loadSchedule(), 700);
-  }
-
-  private clearRetry(): void {
-    if (this.retryTimeoutId !== null) {
-      clearTimeout(this.retryTimeoutId);
-      this.retryTimeoutId = null;
-    }
   }
 
   getTimeRemaining(startTime: string): string {
@@ -149,5 +221,49 @@ export class EmployeeComponent implements OnInit, OnDestroy {
   private toLocalDateKey(date: Date): string {
     const pad = (num: number) => String(num).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  private applyData(users: UserOutputDTO[], bookings: BookingOutputDTO[]): void {
+    const username = this.normalize(this.auth.getUsername());
+    const employee = users.find(user => this.normalize(user.username) === username) ?? null;
+    this.profileLoaded = Boolean(employee);
+    this.employeeName = employee?.name || this.auth.getUsername() || '';
+    this.allBookings = bookings;
+    this.filterBookings();
+    this.lastRefreshAt = Date.now();
+  }
+
+  private scheduleWarmupRefresh(delayMs: number): void {
+    if (!this.warmupEnabled || this.warmupAttempts >= this.warmupMaxAttempts || typeof window === 'undefined') {
+      return;
+    }
+    this.clearWarmupRefresh();
+    this.warmupTimeoutId = window.setTimeout(() => {
+      this.warmupAttempts += 1;
+      this.refreshAll(true);
+    }, delayMs);
+  }
+
+  private clearWarmupRefresh(): void {
+    if (this.warmupTimeoutId !== null) {
+      clearTimeout(this.warmupTimeoutId);
+      this.warmupTimeoutId = null;
+    }
+  }
+
+  private handleWarmupAfterRefresh(): void {
+    if (!this.warmupEnabled) {
+      return;
+    }
+    if (this.profileLoaded) {
+      this.warmupEnabled = false;
+      this.clearWarmupRefresh();
+      return;
+    }
+    this.scheduleWarmupRefresh(800);
+  }
+
+  private normalize(value: string | null | undefined): string {
+    return (value || '').trim().toLowerCase();
   }
 }

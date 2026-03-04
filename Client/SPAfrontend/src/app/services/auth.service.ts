@@ -1,10 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 const AUTH_TOKEN_KEY = 'aurelia-auth-token';
 const AUTH_ROLE_KEY = 'aurelia-auth-role';
 const AUTH_USERNAME_KEY = 'aurelia-auth-username';
+
+export interface AuthSessionState {
+  token: string | null;
+  role: string | null;
+  username: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -12,9 +18,16 @@ export class AuthService {
   private token: string | null = null;
   private role: string | null = null;
   private username: string | null = null;
+  private readonly sessionStateSubject = new BehaviorSubject<AuthSessionState>({
+    token: null,
+    role: null,
+    username: null
+  });
+  readonly sessionState$ = this.sessionStateSubject.asObservable();
 
   constructor(private http: HttpClient) {
     this.restoreSession();
+    this.emitSessionState();
   }
 
   login(username: string, password: string): Observable<{ token: string; role: string }> {
@@ -24,6 +37,7 @@ export class AuthService {
         this.role = res.role;
         this.username = username;
         this.persistSession();
+        this.emitSessionState();
       })
     );
   }
@@ -35,6 +49,7 @@ export class AuthService {
         this.role = res.role;
         this.username = 'guest';
         this.persistSession();
+        this.emitSessionState();
       })
     );
   }
@@ -44,6 +59,7 @@ export class AuthService {
     this.role = null;
     this.username = null;
     this.clearSession();
+    this.emitSessionState();
   }
 
   getToken(): string | null {
@@ -57,6 +73,7 @@ export class AuthService {
   setRole(role: string | null): void {
     this.role = role;
     this.persistSession();
+    this.emitSessionState();
   }
 
   getUsername(): string | null {
@@ -104,5 +121,13 @@ export class AuthService {
     window.localStorage.removeItem(AUTH_TOKEN_KEY);
     window.localStorage.removeItem(AUTH_ROLE_KEY);
     window.localStorage.removeItem(AUTH_USERNAME_KEY);
+  }
+
+  private emitSessionState(): void {
+    this.sessionStateSubject.next({
+      token: this.token,
+      role: this.role,
+      username: this.username
+    });
   }
 }

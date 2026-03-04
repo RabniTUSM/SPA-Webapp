@@ -281,6 +281,12 @@ export class CustomerComponent implements OnInit {
   }
 
   selectTimeSlot(slotValue: string): void {
+    const currentValue = this.bookingForm.get('timeSlot')?.value as string | null;
+    if (currentValue === slotValue) {
+      this.bookingForm.patchValue({ timeSlot: '' });
+      return;
+    }
+
     const slot = this.slotPresets.find(item => item.value === slotValue);
     if (!slot || this.isSlotInPast(slot) || this.isSlotOccupied(slot)) {
       return;

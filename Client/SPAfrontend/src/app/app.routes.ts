@@ -11,13 +11,14 @@ import { EmployeeGuard } from './guards/employee.guard';
 import { VipGuard } from './guards/vip.guard';
 import { CustomerGuard } from './guards/customer.guard';
 import { AdminDataResolver } from './admin/admin-data.resolver';
+import { EmployeeDataResolver } from './employee/employee-data.resolver';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'home', component: RoleRedirectComponent, canActivate: [AuthGuard] },
   { path: 'customer', component: CustomerComponent, canActivate: [AuthGuard, CustomerGuard] },
   { path: 'vip', component: VipComponent, canActivate: [AuthGuard, VipGuard] },
-  { path: 'employee', component: EmployeeComponent, canActivate: [AuthGuard, EmployeeGuard] },
+  { path: 'employee', component: EmployeeComponent, canActivate: [AuthGuard, EmployeeGuard], resolve: { employeeData: EmployeeDataResolver } },
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard, AdminGuard], resolve: { adminData: AdminDataResolver } },
   { path: 'users', redirectTo: '/admin', pathMatch: 'full' },
   { path: 'bookings', redirectTo: '/admin', pathMatch: 'full' },

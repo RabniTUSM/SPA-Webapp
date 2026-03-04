@@ -160,7 +160,8 @@
   color: #8d5a42;
 }
 
-.session-chip:hover:not(.unavailable) {
+.session-chip:hover:not(.unavailable),
+.session-chip.selected:not(.unavailable) {
   border-color: rgba(31, 93, 75, 0.42);
   box-shadow: 0 8px 18px rgba(52, 80, 61, 0.14);
   background: var(--surface-plain);
@@ -169,12 +170,6 @@
 .session-chip:focus-visible:not(.unavailable),
 .session-chip:active:not(.unavailable) {
   background: var(--surface-plain);
-}
-
-.session-chip.selected {
-  border-color: rgba(31, 93, 75, 0.64);
-  box-shadow: 0 0 0 3px rgba(31, 93, 75, 0.18);
-  background: rgba(245, 255, 250, 0.96);
 }
 
 .session-chip.unavailable {

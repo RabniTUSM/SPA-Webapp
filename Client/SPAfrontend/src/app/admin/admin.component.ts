@@ -598,6 +598,12 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   selectBookingSlot(slotValue: string): void {
+    const currentValue = this.bookingForm.get('timeSlot')?.value as string | null;
+    if (currentValue === slotValue) {
+      this.bookingForm.patchValue({ timeSlot: '' });
+      return;
+    }
+
     const slot = this.slotPresets.find(item => item.value === slotValue);
     if (!slot || this.isBookingSlotInPast(slot) || this.isBookingSlotOccupied(slot)) {
       return;
