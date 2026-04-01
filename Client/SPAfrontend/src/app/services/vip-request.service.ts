@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-
-const VIP_REQUESTS_KEY = 'aurelia-vip-requests';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 export interface VipRequest {
-  id: string;
+  id: number;
   username: string;
   name: string;
   message: string;
@@ -13,74 +14,32 @@ export interface VipRequest {
 
 @Injectable({ providedIn: 'root' })
 export class VipRequestService {
-  private requests: VipRequest[] = [];
+  private apiUrl = '/SPA/VipRequest';
 
-  constructor() {
-    this.restoreRequests();
+  constructor(private http: HttpClient, private auth: AuthService) {}
+
+  private getHeaders(): HttpHeaders {
+    const token = this.auth.getToken();
+    return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  submitRequest(username: string, name: string, message: string): VipRequest {
-    const request: VipRequest = {
-      id: `${username}-${Date.now()}`,
-      username,
-      name,
-      message,
-      requestedAt: new Date().toISOString(),
-      status: 'pending'
-    };
-    this.requests.unshift(request);
-    this.persistRequests();
-    return request;
+  submitRequest(message: string): Observable<VipRequest> {
+    return this.http.post<VipRequest>(this.apiUrl, { message }, { headers: this.getHeaders() });
   }
 
-  getRequests(): VipRequest[] {
-    return [...this.requests];
+  getMyRequests(): Observable<VipRequest[]> {
+    return this.http.get<VipRequest[]>(`${this.apiUrl}/my`, { headers: this.getHeaders() });
   }
 
-  getPendingRequests(): VipRequest[] {
-    return this.getRequests().filter(request => request.status === 'pending');
+  getPendingRequests(): Observable<VipRequest[]> {
+    return this.http.get<VipRequest[]>(`${this.apiUrl}/pending`, { headers: this.getHeaders() });
   }
 
-  approveRequest(id: string): VipRequest | null {
-    const request = this.requests.find(item => item.id === id);
-    if (!request) {
-      return null;
-    }
-    request.status = 'approved';
-    this.persistRequests();
-    return request;
+  approveRequest(id: number): Observable<VipRequest> {
+    return this.http.post<VipRequest>(`${this.apiUrl}/${id}/approve`, {}, { headers: this.getHeaders() });
   }
 
-  rejectRequest(id: string): VipRequest | null {
-    const request = this.requests.find(item => item.id === id);
-    if (!request) {
-      return null;
-    }
-    request.status = 'rejected';
-    this.persistRequests();
-    return request;
-  }
-
-  private restoreRequests(): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    try {
-      const stored = window.localStorage.getItem(VIP_REQUESTS_KEY);
-      if (!stored) {
-        return;
-      }
-      const parsed = JSON.parse(stored) as VipRequest[];
-      this.requests = Array.isArray(parsed) ? parsed : [];
-    } catch {
-      this.requests = [];
-    }
-  }
-
-  private persistRequests(): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    window.localStorage.setItem(VIP_REQUESTS_KEY, JSON.stringify(this.requests));
+  rejectRequest(id: number): Observable<VipRequest> {
+    return this.http.post<VipRequest>(`${this.apiUrl}/${id}/reject`, {}, { headers: this.getHeaders() });
   }
 }

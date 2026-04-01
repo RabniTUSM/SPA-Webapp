@@ -14,73 +14,91 @@
           <strong>{{ discountPercentage }}% off</strong>
         </div>
       </div>
+
+      <aside class="employee-highlight employee-highlight-intro" *ngIf="selectedEmployee as selected">
+        <p class="employee-highlight-label">{{ 'customer.fieldEmployee' | t }}</p>
+        <h3>{{ selected.name }}</h3>
+        <div class="employee-highlight-photo">
+          <img
+            *ngIf="shouldShowEmployeePhoto(selected); else selectedVipEmployeeInitials"
+            [src]="selected.profilePhotoUrl!"
+            [alt]="selected.name"
+            (error)="onEmployeePhotoError(selected.id)"
+          />
+          <ng-template #selectedVipEmployeeInitials>
+            <span>{{ getEmployeeInitials(selected) }}</span>
+          </ng-template>
+        </div>
+      </aside>
     </div>
 
     <div class="vip-panel">
       <h2>{{ 'vip.newReservation' | t }}</h2>
       <p>{{ 'vip.newReservationLead' | t }}</p>
-      <form [formGroup]="bookingForm" (ngSubmit)="bookService()">
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="vipService">{{ 'customer.fieldService' | t }}</label>
-            <select id="vipService" formControlName="serviceId">
-              <option value="" disabled>{{ 'customer.selectService' | t }}</option>
-              <option *ngFor="let service of services" [value]="service.id">
-                {{ service.name }} - {{ getVipPrice(service.price) | currency:'EUR':'symbol':'1.2-2' }}
-              </option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="vipEmployee">{{ 'customer.fieldEmployee' | t }}</label>
-            <select id="vipEmployee" formControlName="employeeId">
-              <option value="" disabled>{{ 'customer.selectEmployee' | t }}</option>
-              <option *ngFor="let employee of employees" [value]="employee.id">
-                {{ employee.name }}
-              </option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="vipLocation">{{ 'customer.fieldLocation' | t }}</label>
-            <select id="vipLocation" formControlName="locationId">
-              <option value="" disabled>{{ 'customer.selectLocation' | t }}</option>
-              <option *ngFor="let location of availableLocations" [value]="location.id">
-                {{ location.name }} - {{ location.address || ('customer.noAddress' | t) }}
-              </option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="vipDate">{{ 'customer.fieldDay' | t }}</label>
-            <input id="vipDate" type="date" formControlName="bookingDate" [min]="minBookingDate" />
-          </div>
-          <div class="form-field session-field">
-            <label>{{ 'customer.fieldSession' | t }}</label>
-            <input type="hidden" formControlName="timeSlot" />
-            <div class="session-grid" [class.disabled]="!canChooseSlots">
-              <button
-                type="button"
-                class="session-chip"
-                *ngFor="let slot of timetableSlots"
-                [class.selected]="bookingForm.get('timeSlot')?.value === slot.value"
-                [class.unavailable]="slot.unavailable"
-                [disabled]="slot.unavailable || !canChooseSlots"
-                (click)="selectTimeSlot(slot.value)"
-              >
-                <span>{{ slot.label }}</span>
-                <small *ngIf="slot.reason === 'occupied'">{{ 'customer.slotOccupied' | t }}</small>
-                <small *ngIf="slot.reason === 'past'">{{ 'customer.slotPast' | t }}</small>
-              </button>
+      <div class="booking-layout">
+        <form [formGroup]="bookingForm" (ngSubmit)="bookService()">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="vipService">{{ 'customer.fieldService' | t }}</label>
+              <select id="vipService" formControlName="serviceId">
+                <option value="" disabled>{{ 'customer.selectService' | t }}</option>
+                <option *ngFor="let service of services" [value]="service.id">
+                  {{ service.name }} - {{ getVipPrice(service.price) | currency:'EUR':'symbol':'1.2-2' }}
+                </option>
+              </select>
             </div>
-            <p class="session-hint" *ngIf="!canChooseSlots">{{ 'customer.slotChooseDateEmployee' | t }}</p>
+            <div class="form-field">
+              <label for="vipEmployee">{{ 'customer.fieldEmployee' | t }}</label>
+              <select id="vipEmployee" formControlName="employeeId" [disabled]="isEmployeesLoading">
+                <option value="" disabled>{{ isEmployeesLoading ? ('customer.loadingEmployees' | t) : ('customer.selectEmployee' | t) }}</option>
+                <option *ngFor="let employee of employees" [value]="employee.id">
+                  {{ employee.name }}
+                </option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="vipLocation">{{ 'customer.fieldLocation' | t }}</label>
+              <select id="vipLocation" formControlName="locationId">
+                <option value="" disabled>{{ 'customer.selectLocation' | t }}</option>
+                <option *ngFor="let location of availableLocations" [value]="location.id">
+                  {{ location.name }} - {{ location.address || ('customer.noAddress' | t) }}
+                </option>
+              </select>
+            </div>
+            <div class="form-field date-field">
+              <label for="vipDate">{{ 'customer.fieldDay' | t }}</label>
+              <input id="vipDate" type="date" formControlName="bookingDate" [min]="minBookingDate" />
+            </div>
+            <div class="form-field session-field">
+              <label>{{ 'customer.fieldSession' | t }}</label>
+              <input type="hidden" formControlName="timeSlot" />
+              <div class="session-grid" [class.disabled]="!canChooseSlots">
+                <button
+                  type="button"
+                  class="session-chip"
+                  *ngFor="let slot of timetableSlots"
+                  [class.selected]="bookingForm.get('timeSlot')?.value === slot.value"
+                  [class.unavailable]="slot.unavailable"
+                  [disabled]="slot.unavailable || !canChooseSlots"
+                  (click)="selectTimeSlot(slot.value)"
+                >
+                  <span>{{ slot.label }}</span>
+                  <small *ngIf="slot.reason === 'occupied'">{{ 'customer.slotOccupied' | t }}</small>
+                  <small *ngIf="slot.reason === 'past'">{{ 'customer.slotPast' | t }}</small>
+                </button>
+              </div>
+              <p class="session-hint" *ngIf="!canChooseSlots">{{ 'customer.slotChooseDateEmployee' | t }}</p>
+            </div>
           </div>
-        </div>
 
-        <input type="hidden" formControlName="customerId" />
+          <input type="hidden" formControlName="customerId" />
 
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">{{ 'vip.reserve' | t }}</button>
-          <span *ngIf="formError" class="form-error">{{ formError }}</span>
-        </div>
-      </form>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">{{ 'vip.reserve' | t }}</button>
+            <span *ngIf="formError" class="form-error">{{ formError }}</span>
+          </div>
+        </form>
+      </div>
     </div>
   </section>
 

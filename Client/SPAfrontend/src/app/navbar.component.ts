@@ -229,6 +229,9 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit() {
     this.refreshState();
+    this.auth.sessionState$.subscribe(() => {
+      this.refreshState();
+    });
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       this.refreshState();
     });

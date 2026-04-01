@@ -2,6 +2,7 @@
 
 :root {
   color-scheme: light;
+  background-color: #f7f1e6;
   --bg-base: #efe4cf;
   --bg-soft: #f7f1e6;
   --bg-glow: #d8e8df;
@@ -35,13 +36,13 @@ body {
 }
 
 html {
-  background-color: #f7f1e6;
+  background-color: var(--bg-soft);
 }
 
 body {
   margin: 0;
   color: var(--ink-strong);
-  background-color: #f7f1e6;
+  background-color: var(--bg-soft);
   background: linear-gradient(165deg, var(--bg-soft) 0%, #f1e6d4 45%, #e8d8c1 100%);
   font-family: 'Manrope', 'Trebuchet MS', sans-serif;
   position: relative;
@@ -71,6 +72,7 @@ body::after {
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+  background-color: #11191f;
   --bg-base: #10161b;
   --bg-soft: #11191f;
   --bg-glow: #17352f;
@@ -92,7 +94,7 @@ body::after {
   background: linear-gradient(160deg, #0f161b 0%, #111c23 48%, #1b2329 100%);
 }
 
-:root[data-theme='dark'] html {
+html[data-theme='dark'] {
   background-color: #11191f;
 }
 
@@ -178,6 +180,57 @@ body::after {
   background: rgba(38, 62, 72, 0.65) !important;
   color: #d3e4e7 !important;
   border-color: rgba(133, 166, 161, 0.22) !important;
+}
+
+:root[data-theme='dark'] .employee-highlight {
+  background: linear-gradient(145deg, rgba(29, 41, 50, 0.94), rgba(23, 33, 41, 0.96)) !important;
+  border-color: rgba(141, 171, 165, 0.24) !important;
+  box-shadow: 0 16px 30px rgba(3, 8, 11, 0.34) !important;
+}
+
+:root[data-theme='dark'] .employee-highlight-label {
+  color: #9db2b4 !important;
+}
+
+:root[data-theme='dark'] .employee-highlight h3 {
+  color: var(--ink-strong) !important;
+}
+
+:root[data-theme='dark'] .employee-highlight-photo {
+  background: linear-gradient(145deg, #214f54, #183e45) !important;
+  color: #e6f4f2 !important;
+  box-shadow: inset 0 0 0 1px rgba(133, 166, 161, 0.26) !important;
+}
+
+:root[data-theme='dark'] .customer-shell .employee-highlight {
+  background: linear-gradient(145deg, rgba(48, 36, 30, 0.95), rgba(31, 24, 21, 0.97)) !important;
+  border-color: rgba(209, 163, 128, 0.26) !important;
+}
+
+:root[data-theme='dark'] .customer-shell .employee-highlight-photo {
+  background: linear-gradient(150deg, #7a3f2d, #58291f) !important;
+  box-shadow: inset 0 0 0 1px rgba(240, 198, 165, 0.24) !important;
+}
+
+:root[data-theme='dark'] .vip-shell .employee-highlight {
+  background: linear-gradient(145deg, rgba(26, 42, 40, 0.95), rgba(19, 30, 31, 0.97)) !important;
+  border-color: rgba(134, 180, 167, 0.28) !important;
+}
+
+:root[data-theme='dark'] .vip-shell .employee-highlight-photo {
+  background: linear-gradient(145deg, #1f5c58, #17423f) !important;
+  box-shadow: inset 0 0 0 1px rgba(133, 166, 161, 0.3) !important;
+}
+
+:root[data-theme='dark'] .employee-profile-card {
+  background: rgba(31, 43, 52, 0.9) !important;
+  border: 1px solid rgba(145, 178, 173, 0.2) !important;
+}
+
+:root[data-theme='dark'] .profile-avatar {
+  background: linear-gradient(140deg, #266e66, #1f5a53) !important;
+  color: #e6f4f2 !important;
+  box-shadow: inset 0 0 0 1px rgba(133, 166, 161, 0.26) !important;
 }
 
 :root[data-theme='dark'] .admin-table th,

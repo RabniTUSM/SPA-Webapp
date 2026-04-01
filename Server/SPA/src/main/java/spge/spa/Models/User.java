@@ -18,6 +18,8 @@ public class User {
     private String email;
     @Column
     private String phone;
+    @Column(name = "profile_photo_filename")
+    private String profilePhotoFilename;
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role = new Role();
@@ -64,6 +66,14 @@ public class User {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getProfilePhotoFilename() {
+        return profilePhotoFilename;
+    }
+
+    public void setProfilePhotoFilename(String profilePhotoFilename) {
+        this.profilePhotoFilename = profilePhotoFilename;
     }
 
     public void setRole(Role role) {

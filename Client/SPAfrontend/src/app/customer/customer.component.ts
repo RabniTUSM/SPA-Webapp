@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { BookingService } from '../services/booking.service';
@@ -15,6 +15,7 @@ import { UserOutputDTO } from '../models/user.model';
 import { TranslatePipe } from '../pipes/t.pipe';
 import { LanguageService } from '../services/language.service';
 import { ToastService } from '../services/toast.service';
+import { Subject, distinctUntilChanged, map, takeUntil } from 'rxjs';
 
 interface TimeSlotPreset {
   value: string;
@@ -30,7 +31,7 @@ interface TimeSlotPreset {
   templateUrl: './customer.component.html',
   styleUrls: ['./customer.component.scss']
 })
-export class CustomerComponent implements OnInit {
+export class CustomerComponent implements OnInit, OnDestroy {
   bookingForm: FormGroup;
   services: SpaServiceOutputDTO[] = [];
   locations: LocationOutputDTO[] = [];
@@ -43,7 +44,10 @@ export class CustomerComponent implements OnInit {
   vipRequestNote = '';
   vipStatus: 'none' | 'pending' | 'approved' | 'rejected' = 'none';
   isGuest = false;
+  isEmployeesLoading = false;
+  brokenEmployeePhotoIds = new Set<number>();
   readonly minBookingDate = this.getTodayDate();
+  private readonly destroy$ = new Subject<void>();
 
   private readonly slotPresets: TimeSlotPreset[] = [
     { value: '09:00-10:00', label: '09:00 - 10:00', start: '09:00', end: '10:00' },
@@ -78,6 +82,7 @@ export class CustomerComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isGuest = this.auth.getUsername() === 'guest';
     this.loadCurrentUser();
     this.loadServices();
     this.loadLocations();
@@ -89,6 +94,36 @@ export class CustomerComponent implements OnInit {
 
     this.bookingForm.get('employeeId')?.valueChanges.subscribe(() => this.clearSlotSelection());
     this.bookingForm.get('bookingDate')?.valueChanges.subscribe(() => this.clearSlotSelection());
+
+    let firstSessionEmission = true;
+    this.auth.sessionState$
+      .pipe(
+        map(state => `${state.token ?? ''}|${state.username ?? ''}`),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        if (firstSessionEmission) {
+          firstSessionEmission = false;
+          return;
+        }
+        this.isGuest = this.auth.getUsername() === 'guest';
+        this.currentUser = null;
+        this.employees = [];
+        this.bookings = [];
+        this.myBookings = [];
+        this.loadCurrentUser();
+        if (!this.isGuest) {
+          this.loadEmployees();
+          this.loadBookings();
+        }
+        this.refreshVipStatus();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadCurrentUser() {
@@ -130,11 +165,18 @@ export class CustomerComponent implements OnInit {
   }
 
   private loadEmployees() {
+    this.isEmployeesLoading = true;
     this.userService.getAllUsers().subscribe({
       next: users => {
         this.employees = users.filter(user => (user.role || '').toUpperCase() === 'EMPLOYEE');
+        this.brokenEmployeePhotoIds.clear();
+        this.isEmployeesLoading = false;
       },
-      error: () => this.employees = []
+      error: () => {
+        this.employees = [];
+        this.brokenEmployeePhotoIds.clear();
+        this.isEmployeesLoading = false;
+      }
     });
   }
 
@@ -157,7 +199,11 @@ export class CustomerComponent implements OnInit {
       return;
     }
     if (this.currentUser?.name) {
-      this.myBookings = this.bookings.filter(booking => booking.customerName === this.currentUser?.name);
+      const now = Date.now();
+      this.myBookings = this.bookings
+        .filter(booking => booking.customerName === this.currentUser?.name)
+        .filter(booking => this.isBookingUpcoming(booking, now))
+        .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
     } else {
       this.myBookings = [];
     }
@@ -214,8 +260,51 @@ export class CustomerComponent implements OnInit {
   }
 
   cancelBooking(id: number) {
+    const booking = this.myBookings.find(item => item.id === id);
+    if (!booking) {
+      this.loadBookings();
+      return;
+    }
+    if (this.hasBookingEnded(booking)) {
+      this.toast.error(this.language.t('customer.errorPastBookingCancel'));
+      this.loadBookings();
+      return;
+    }
     if (!confirm(this.language.t('customer.confirmCancel'))) return;
-    this.bookingService.deleteBooking(id).subscribe(() => this.loadBookings());
+    this.bookingService.deleteBooking(id).subscribe({
+      next: () => this.loadBookings(),
+      error: () => {
+        this.toast.error(this.language.t('customer.errorPastBookingCancel'));
+        this.loadBookings();
+      }
+    });
+  }
+
+  get selectedEmployee(): UserOutputDTO | null {
+    const employeeId = Number(this.bookingForm.get('employeeId')?.value);
+    if (!Number.isFinite(employeeId)) {
+      return null;
+    }
+    return this.employees.find(employee => employee.id === employeeId) ?? null;
+  }
+
+  onEmployeePhotoError(employeeId: number): void {
+    this.brokenEmployeePhotoIds.add(employeeId);
+  }
+
+  shouldShowEmployeePhoto(employee: UserOutputDTO): boolean {
+    return Boolean(employee.profilePhotoUrl) && !this.brokenEmployeePhotoIds.has(employee.id);
+  }
+
+  getEmployeeInitials(employee: UserOutputDTO): string {
+    const parts = (employee.name || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'E';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 1).toUpperCase();
+    }
+    return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
   }
 
   downloadPriceChart() {
@@ -243,13 +332,18 @@ export class CustomerComponent implements OnInit {
       this.vipError = this.language.t('customer.errorVipNote');
       return;
     }
-    this.vipRequests.submitRequest(
-      this.auth.getUsername() || this.currentUser.username,
-      this.currentUser.name,
-      this.vipRequestNote.trim()
-    );
-    this.vipRequestNote = '';
-    this.refreshVipStatus();
+    this.vipRequests.submitRequest(this.vipRequestNote.trim()).subscribe({
+      next: () => {
+        this.vipRequestNote = '';
+        this.toast.success(this.language.t('customer.vipRequestSent'));
+        this.refreshVipStatus();
+      },
+      error: err => {
+        this.vipError = this.mapVipRequestError(err);
+        this.toast.error(this.vipError);
+        this.refreshVipStatus();
+      }
+    });
   }
 
   private refreshVipStatus() {
@@ -260,23 +354,60 @@ export class CustomerComponent implements OnInit {
       this.vipStatus = 'approved';
       return;
     }
-    if (!username) {
+    if (!username || username === 'guest') {
       this.vipStatus = 'none';
       return;
     }
-    const requests = this.vipRequests.getRequests().filter(req => req.username === username);
-    const approved = requests.find(req => req.status === 'approved');
-    const pending = requests.find(req => req.status === 'pending');
-    const rejected = requests.find(req => req.status === 'rejected');
-    if (approved) {
-      this.vipStatus = 'approved';
-    } else if (pending) {
-      this.vipStatus = 'pending';
-    } else if (rejected) {
-      this.vipStatus = 'rejected';
-    } else {
-      this.vipStatus = 'none';
+    this.vipRequests.getMyRequests().subscribe({
+      next: requests => {
+        const approved = requests.find(req => req.status === 'approved');
+        const pending = requests.find(req => req.status === 'pending');
+        const rejected = requests.find(req => req.status === 'rejected');
+        if (approved) {
+          if (this.currentUser) {
+            this.currentUser = { ...this.currentUser, role: 'VIP' };
+          }
+          this.auth.setRole('VIP');
+          this.vipStatus = 'approved';
+        } else if (pending) {
+          this.vipStatus = 'pending';
+        } else if (rejected) {
+          this.vipStatus = 'rejected';
+        } else {
+          this.vipStatus = 'none';
+        }
+      },
+      error: () => {
+        this.vipStatus = 'none';
+      }
+    });
+  }
+
+  private mapVipRequestError(err: any): string {
+    const backendMessage = this.extractBackendMessage(err).toLowerCase();
+    if (backendMessage.includes('pending')) {
+      return this.language.t('customer.vipRequestExists');
     }
+    if (backendMessage.includes('already have vip')) {
+      return this.language.t('customer.vipAlreadyMember');
+    }
+    if (backendMessage.includes('customer accounts')) {
+      return this.language.t('customer.vipRequestFailed');
+    }
+    return this.extractBackendMessage(err) || this.language.t('customer.vipRequestFailed');
+  }
+
+  private extractBackendMessage(err: any): string {
+    if (typeof err?.error === 'string') {
+      return err.error;
+    }
+    if (typeof err?.error?.message === 'string') {
+      return err.error.message;
+    }
+    if (typeof err?.error?.error === 'string') {
+      return err.error.error;
+    }
+    return '';
   }
 
   get canChooseSlots(): boolean {
@@ -352,6 +483,23 @@ export class CustomerComponent implements OnInit {
       return null;
     }
     return this.employees.find(employee => employee.id === employeeId)?.name ?? null;
+  }
+
+  private isBookingUpcoming(booking: BookingOutputDTO, now = Date.now()): boolean {
+    return this.getBookingEndTime(booking) > now;
+  }
+
+  private hasBookingEnded(booking: BookingOutputDTO): boolean {
+    return !this.isBookingUpcoming(booking);
+  }
+
+  private getBookingEndTime(booking: BookingOutputDTO): number {
+    const end = Date.parse(booking.endTime);
+    if (!Number.isNaN(end)) {
+      return end;
+    }
+    const start = Date.parse(booking.startTime);
+    return Number.isNaN(start) ? 0 : start;
   }
 
   private buildDateTime(date: string, time: string): string {

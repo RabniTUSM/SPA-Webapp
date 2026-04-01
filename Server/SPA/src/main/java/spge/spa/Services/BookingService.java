@@ -14,6 +14,7 @@ import spge.spa.Repositories.LocationRepository;
 import spge.spa.Repositories.SpaServiceRepository;
 import spge.spa.Repositories.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -138,6 +139,9 @@ public class BookingService {
         }
         if (!requester.isStaffOrAdmin && !booking.getCustomer().getId().equals(requester.user.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can manage only your own bookings");
+        }
+        if (!requester.isStaffOrAdmin && booking.getEndTime() != null && !booking.getEndTime().isAfter(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Past bookings cannot be canceled");
         }
     }
 

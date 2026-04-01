@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { SpaServiceService } from '../services/spa-service.service';
 import { BookingService } from '../services/booking.service';
 import { UserService } from '../services/user.service';
@@ -13,6 +13,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { TranslatePipe } from '../pipes/t.pipe';
 import { LanguageService } from '../services/language.service';
 import { ToastService } from '../services/toast.service';
+import { Subject, distinctUntilChanged, map, takeUntil } from 'rxjs';
 
 interface TimeSlotPreset {
   value: string;
@@ -33,7 +34,7 @@ interface TimeSlotPreset {
   ],
   styleUrls: ['./vip.component.scss']
 })
-export class VipComponent implements OnInit {
+export class VipComponent implements OnInit, OnDestroy {
   services: SpaServiceOutputDTO[] = [];
   allLocations: LocationOutputDTO[] = [];
   employees: UserOutputDTO[] = [];
@@ -43,7 +44,10 @@ export class VipComponent implements OnInit {
   discountPercentage = 20; // 20% discount for VIP
   currentUser: UserOutputDTO | null = null;
   formError = '';
+  isEmployeesLoading = false;
+  brokenEmployeePhotoIds = new Set<number>();
   readonly minBookingDate = this.getTodayDate();
+  private readonly destroy$ = new Subject<void>();
 
   private readonly slotPresets: TimeSlotPreset[] = [
     { value: '09:00-10:00', label: '09:00 - 10:00', start: '09:00', end: '10:00' },
@@ -85,35 +89,85 @@ export class VipComponent implements OnInit {
     this.bookingForm.get('serviceId')?.valueChanges.subscribe(() => this.syncLocationSelectionForService());
     this.bookingForm.get('employeeId')?.valueChanges.subscribe(() => this.clearSlotSelection());
     this.bookingForm.get('bookingDate')?.valueChanges.subscribe(() => this.clearSlotSelection());
+
+    let firstSessionEmission = true;
+    this.auth.sessionState$
+      .pipe(
+        map(state => `${state.token ?? ''}|${state.username ?? ''}`),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        if (firstSessionEmission) {
+          firstSessionEmission = false;
+          return;
+        }
+        this.currentUser = null;
+        this.allBookings = [];
+        this.myBookings = [];
+        this.loadCurrentUser();
+        this.loadServices();
+        this.loadLocations();
+        this.loadEmployees();
+        this.loadMyBookings();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadServices() {
-    this.serviceService.getAllServices().subscribe(data => {
-      this.services = data;
+    this.serviceService.getAllServices().subscribe({
+      next: data => {
+        this.services = data;
+      },
+      error: () => {
+        this.services = [];
+      }
     });
   }
 
   loadMyBookings() {
-    this.bookingService.getAllBookings().subscribe(data => {
-      this.allBookings = data;
-      if (this.currentUser?.name) {
-        this.myBookings = data.filter(booking => booking.customerName === this.currentUser?.name);
-      } else {
+    this.bookingService.getAllBookings().subscribe({
+      next: data => {
+        this.allBookings = data;
+        this.updateMyBookingsFromAllBookings();
+      },
+      error: () => {
+        this.allBookings = [];
         this.myBookings = [];
       }
     });
   }
 
   loadLocations() {
-    this.locationService.getAllLocations().subscribe(data => {
-      this.allLocations = data;
-      this.syncLocationSelectionForService();
+    this.locationService.getAllLocations().subscribe({
+      next: data => {
+        this.allLocations = data;
+        this.syncLocationSelectionForService();
+      },
+      error: () => {
+        this.allLocations = [];
+        this.syncLocationSelectionForService();
+      }
     });
   }
 
   loadEmployees() {
-    this.userService.getAllUsers().subscribe(data => {
-      this.employees = data.filter(user => (user.role || '').toUpperCase() === 'EMPLOYEE');
+    this.isEmployeesLoading = true;
+    this.userService.getAllUsers().subscribe({
+      next: data => {
+        this.employees = data.filter(user => (user.role || '').toUpperCase() === 'EMPLOYEE');
+        this.brokenEmployeePhotoIds.clear();
+        this.isEmployeesLoading = false;
+      },
+      error: () => {
+        this.employees = [];
+        this.brokenEmployeePhotoIds.clear();
+        this.isEmployeesLoading = false;
+      }
     });
   }
 
@@ -125,7 +179,7 @@ export class VipComponent implements OnInit {
         this.currentUser = user;
         this.auth.setRole(user.role || this.auth.getRole());
         this.bookingForm.patchValue({ customerId: user.id });
-        this.loadMyBookings();
+        this.updateMyBookingsFromAllBookings();
       },
       error: () => {
         this.currentUser = null;
@@ -186,11 +240,53 @@ export class VipComponent implements OnInit {
   }
 
   cancelBooking(bookingId: number) {
+    const booking = this.myBookings.find(item => item.id === bookingId);
+    if (!booking) {
+      this.loadMyBookings();
+      return;
+    }
+    if (this.hasBookingEnded(booking)) {
+      this.toast.error(this.language.t('customer.errorPastBookingCancel'));
+      this.loadMyBookings();
+      return;
+    }
+
     if (confirm(this.language.t('vip.cancelConfirm'))) {
-      this.bookingService.deleteBooking(bookingId).subscribe(() => {
-        this.loadMyBookings();
+      this.bookingService.deleteBooking(bookingId).subscribe({
+        next: () => this.loadMyBookings(),
+        error: () => {
+          this.toast.error(this.language.t('customer.errorPastBookingCancel'));
+          this.loadMyBookings();
+        }
       });
     }
+  }
+
+  get selectedEmployee(): UserOutputDTO | null {
+    const employeeId = Number(this.bookingForm.get('employeeId')?.value);
+    if (!Number.isFinite(employeeId)) {
+      return null;
+    }
+    return this.employees.find(employee => employee.id === employeeId) ?? null;
+  }
+
+  onEmployeePhotoError(employeeId: number): void {
+    this.brokenEmployeePhotoIds.add(employeeId);
+  }
+
+  shouldShowEmployeePhoto(employee: UserOutputDTO): boolean {
+    return Boolean(employee.profilePhotoUrl) && !this.brokenEmployeePhotoIds.has(employee.id);
+  }
+
+  getEmployeeInitials(employee: UserOutputDTO): string {
+    const parts = (employee.name || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'E';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 1).toUpperCase();
+    }
+    return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
   }
 
   get canChooseSlots(): boolean {
@@ -295,6 +391,35 @@ export class VipComponent implements OnInit {
       return null;
     }
     return this.services.find(service => service.id === serviceId) ?? null;
+  }
+
+  private isBookingUpcoming(booking: BookingOutputDTO, now = Date.now()): boolean {
+    return this.getBookingEndTime(booking) > now;
+  }
+
+  private updateMyBookingsFromAllBookings(): void {
+    if (!this.currentUser?.name) {
+      this.myBookings = [];
+      return;
+    }
+    const now = Date.now();
+    this.myBookings = this.allBookings
+      .filter(booking => booking.customerName === this.currentUser?.name)
+      .filter(booking => this.isBookingUpcoming(booking, now))
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  }
+
+  private hasBookingEnded(booking: BookingOutputDTO): boolean {
+    return !this.isBookingUpcoming(booking);
+  }
+
+  private getBookingEndTime(booking: BookingOutputDTO): number {
+    const end = Date.parse(booking.endTime);
+    if (!Number.isNaN(end)) {
+      return end;
+    }
+    const start = Date.parse(booking.startTime);
+    return Number.isNaN(start) ? 0 : start;
   }
 
   private buildDateTime(date: string, time: string): string {

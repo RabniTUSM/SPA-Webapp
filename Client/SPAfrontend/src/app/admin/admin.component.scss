@@ -193,6 +193,24 @@ select {
   resize: vertical;
 }
 
+.form-field input[type='date'] {
+  min-height: 64px;
+  font-size: 1.2rem;
+  letter-spacing: 0.01em;
+  padding-right: 60px;
+}
+
+.form-field input[type='date']::-webkit-datetime-edit {
+  font-size: 1.08em;
+}
+
+.form-field input[type='date']::-webkit-calendar-picker-indicator {
+  width: 28px;
+  height: 28px;
+  transform: scale(1.05);
+  cursor: pointer;
+}
+
 .checkbox {
   display: flex;
   align-items: center;

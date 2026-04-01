@@ -5,6 +5,27 @@
       <h1>{{ 'employee.title' | t }}</h1>
       <p class="lead">{{ 'employee.lead' | t }}</p>
     </div>
+    <div class="employee-profile-card">
+      <div class="profile-avatar">
+        <img
+          *ngIf="employeeProfilePhotoUrl; else employeeInitialsFallback"
+          [src]="employeeProfilePhotoUrl"
+          [alt]="'employee.photoAlt' | t"
+          (error)="onEmployeePhotoError()"
+        />
+        <ng-template #employeeInitialsFallback>
+          <span>{{ employeeInitials }}</span>
+        </ng-template>
+      </div>
+      <div class="profile-upload">
+        <label class="upload-label">
+          <span>{{ 'employee.photoSelect' | t }}</span>
+          <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp,.jpg,.jpeg,.png,.webp" (change)="onProfilePhotoSelected($event)" />
+        </label>
+        <button class="upload-btn" type="button" (click)="uploadProfilePhoto()">{{ 'employee.photoUpload' | t }}</button>
+        <small *ngIf="selectedProfilePhotoFile">{{ selectedProfilePhotoFile.name }}</small>
+      </div>
+    </div>
     <div class="employee-meta">
       <div>
         <span class="label">{{ 'employee.employee' | t }}</span>

@@ -4,6 +4,10 @@ import { BehaviorSubject } from 'rxjs';
 export type AppTheme = 'light' | 'dark';
 
 const STORAGE_KEY = 'aurelia-theme';
+const THEME_COLORS: Record<AppTheme, string> = {
+  light: '#f7f1e6',
+  dark: '#11191f'
+};
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -39,6 +43,18 @@ export class ThemeService {
   private applyTheme(theme: AppTheme): void {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', theme);
+      this.applyThemeColor(theme);
     }
+  }
+
+  private applyThemeColor(theme: AppTheme): void {
+    const color = THEME_COLORS[theme];
+    let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      document.head.appendChild(meta);
+    }
+    meta.content = color;
   }
 }

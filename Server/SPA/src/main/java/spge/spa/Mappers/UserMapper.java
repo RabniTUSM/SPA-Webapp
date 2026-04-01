@@ -63,7 +63,12 @@ public class UserMapper {
             dto.setName(user.getName());
             dto.setEmail(user.getEmail());
             dto.setPhone(user.getPhone());
-             dto.setRole(user.getRole().getName());
+            dto.setRole(user.getRole().getName());
+            if (user.getProfilePhotoFilename() != null && !user.getProfilePhotoFilename().isBlank()) {
+                dto.setProfilePhotoUrl("/SPA/User/profile-photo/" + user.getId());
+            } else {
+                dto.setProfilePhotoUrl(null);
+            }
             return dto;
         }
         else{

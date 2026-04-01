@@ -13,6 +13,7 @@ export interface UserOutputDTO {
   email: string;
   phone: string;
   role: string;
+  profilePhotoUrl?: string | null;
 }
 
 export interface CreateAdminDTO {

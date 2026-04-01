@@ -1,9 +1,12 @@
 package spge.spa.Services;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.core.io.Resource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import spge.spa.DTOs.AdminUserInputDTO;
 import spge.spa.DTOs.CreateAdminDTO;
@@ -23,13 +26,21 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final ProfilePhotoStorageService profilePhotoStorageService;
 
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public UserService(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            UserMapper userMapper,
+            PasswordEncoder passwordEncoder,
+            ProfilePhotoStorageService profilePhotoStorageService
+    ) {
         this.userMapper = userMapper;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.profilePhotoStorageService = profilePhotoStorageService;
     }
 
     public void createUser(UserInputDTO dto) {
@@ -166,6 +177,54 @@ public class UserService {
         }
     }
 
+    public void uploadProfilePhoto(String targetUsername, MultipartFile file, String principalUsername) {
+        if (principalUsername == null || principalUsername.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Authentication required");
+        }
+
+        String requesterUsername = principalUsername.trim().toLowerCase(Locale.ROOT);
+        if ("guest".equals(requesterUsername)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Guest users cannot upload profile photos");
+        }
+
+        String normalizedTargetUsername = requireNormalizedUsername(targetUsername);
+        var requester = userRepository.findByUsernameIgnoreCase(requesterUsername)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Requester not found"));
+        boolean isAdmin = requester.getRole() != null && "ADMIN".equalsIgnoreCase(requester.getRole().getName());
+        boolean isSelf = requesterUsername.equals(normalizedTargetUsername);
+        if (!isAdmin && !isSelf) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can upload only your own profile photo");
+        }
+
+        var targetUser = userRepository.findByUsernameIgnoreCase(normalizedTargetUsername)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        String targetRole = targetUser.getRole() == null ? "" : targetUser.getRole().getName();
+        if (!"EMPLOYEE".equalsIgnoreCase(targetRole)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile photos can be uploaded only for employees");
+        }
+
+        String filename = profilePhotoStorageService.save(targetUser, file);
+        targetUser.setProfilePhotoFilename(filename);
+        saveUser(targetUser);
+    }
+
+    public ProfilePhotoPayload loadProfilePhoto(Long userId) {
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required");
+        }
+
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        String filename = user.getProfilePhotoFilename();
+        if (filename == null || filename.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile photo not found");
+        }
+        Resource resource = profilePhotoStorageService.load(filename);
+        MediaType mediaType = profilePhotoStorageService.resolveMediaType(filename);
+        return new ProfilePhotoPayload(resource, mediaType);
+    }
+
 
     private void ensureUniqueUserData(User user, Long currentUserId) {
         if (user.getUsername() != null && !user.getUsername().isBlank()) {
@@ -226,5 +285,7 @@ public class UserService {
     private String normalizeText(String value) {
         return value == null ? null : value.trim();
     }
+
+    public record ProfilePhotoPayload(Resource resource, MediaType mediaType) {}
 
 }

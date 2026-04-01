@@ -7,6 +7,7 @@ public class UserOutputDTO {
     private String email;
     private String phone;
     private String role;
+    private String profilePhotoUrl;
 
     public Long getId() {
         return id;
@@ -54,5 +55,13 @@ public class UserOutputDTO {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getProfilePhotoUrl() {
+        return profilePhotoUrl;
+    }
+
+    public void setProfilePhotoUrl(String profilePhotoUrl) {
+        this.profilePhotoUrl = profilePhotoUrl;
     }
 }

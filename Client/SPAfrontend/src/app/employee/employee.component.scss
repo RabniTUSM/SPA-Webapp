@@ -38,6 +38,65 @@
   color: #3b4d46;
 }
 
+.employee-profile-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 12px;
+  min-width: 300px;
+}
+
+.profile-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #2e6a58;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-upload {
+  display: grid;
+  gap: 8px;
+}
+
+.upload-label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #36574c;
+}
+
+.upload-btn {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #2e6a58, #3f7d69);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.profile-upload small {
+  color: #4d6a5f;
+  font-size: 0.78rem;
+}
+
 .employee-meta {
   display: grid;
   gap: 12px;
@@ -135,5 +194,10 @@
 @media (max-width: 720px) {
   .employee-header {
     flex-direction: column;
+  }
+
+  .employee-profile-card {
+    min-width: 0;
+    width: 100%;
   }
 }

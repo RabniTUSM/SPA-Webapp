@@ -7,6 +7,7 @@ import { UserService } from '../services/user.service';
 import { BookingService } from '../services/booking.service';
 import { SpaServiceService } from '../services/spa-service.service';
 import { LocationService } from '../services/location.service';
+import { VipRequest, VipRequestService } from '../services/vip-request.service';
 import { RoleOutputDTO } from '../models/role.model';
 import { UserOutputDTO } from '../models/user.model';
 import { BookingOutputDTO } from '../models/booking.model';
@@ -19,6 +20,7 @@ export interface AdminResolvedData {
   bookings: BookingOutputDTO[];
   services: SpaServiceOutputDTO[];
   locations: LocationOutputDTO[];
+  vipRequests: VipRequest[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -28,6 +30,7 @@ export class AdminDataResolver implements Resolve<AdminResolvedData> {
   private bookingService = inject(BookingService);
   private spaService = inject(SpaServiceService);
   private locationService = inject(LocationService);
+  private vipRequestService = inject(VipRequestService);
 
   resolve() {
     return forkJoin({
@@ -35,7 +38,8 @@ export class AdminDataResolver implements Resolve<AdminResolvedData> {
       users: this.userService.getAllUsers().pipe(catchError(() => of([] as UserOutputDTO[]))),
       bookings: this.bookingService.getAllBookings().pipe(catchError(() => of([] as BookingOutputDTO[]))),
       services: this.spaService.getAllServices().pipe(catchError(() => of([] as SpaServiceOutputDTO[]))),
-      locations: this.locationService.getAllLocations().pipe(catchError(() => of([] as LocationOutputDTO[])))
+      locations: this.locationService.getAllLocations().pipe(catchError(() => of([] as LocationOutputDTO[]))),
+      vipRequests: this.vipRequestService.getPendingRequests().pipe(catchError(() => of([] as VipRequest[])))
     });
   }
 }

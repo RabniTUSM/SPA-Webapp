@@ -8,6 +8,7 @@ import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 import { TranslatePipe } from '../pipes/t.pipe';
 import { LanguageService } from '../services/language.service';
+import { ToastService } from '../services/toast.service';
 import { Subject, catchError, distinctUntilChanged, forkJoin, map, of, takeUntil } from 'rxjs';
 import { UserOutputDTO } from '../models/user.model';
 import { EmployeeResolvedData } from './employee-data.resolver';
@@ -30,6 +31,8 @@ export class EmployeeComponent implements OnInit, OnDestroy {
   filterType = 'upcoming';
   groupedBookings: { dayLabel: string; bookings: BookingOutputDTO[] }[] = [];
   employeeName = '';
+  employeeProfilePhotoUrl: string | null = null;
+  selectedProfilePhotoFile: File | null = null;
   private profileLoaded = false;
   private isLoading = false;
   private readonly autoRefreshMs = 12000;
@@ -53,6 +56,7 @@ export class EmployeeComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     private userService: UserService,
     private language: LanguageService,
+    private toast: ToastService,
     private route: ActivatedRoute
   ) {}
 
@@ -127,6 +131,7 @@ export class EmployeeComponent implements OnInit, OnDestroy {
     if (!username) {
       this.profileLoaded = false;
       this.employeeName = '';
+      this.employeeProfilePhotoUrl = null;
       this.allBookings = [];
       this.filterBookings();
       this.lastRefreshAt = Date.now();
@@ -148,6 +153,7 @@ export class EmployeeComponent implements OnInit, OnDestroy {
       error: () => {
         this.profileLoaded = false;
         this.employeeName = username;
+        this.employeeProfilePhotoUrl = null;
         this.allBookings = [];
         this.filterBookings();
       },
@@ -185,6 +191,77 @@ export class EmployeeComponent implements OnInit, OnDestroy {
 
   onFilterChange() {
     this.filterBookings();
+  }
+
+  get employeeInitials(): string {
+    const parts = (this.employeeName || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'E';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 1).toUpperCase();
+    }
+    return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
+  }
+
+  onProfilePhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0) ?? null;
+    if (!file) {
+      this.selectedProfilePhotoFile = null;
+      return;
+    }
+
+    const maxSizeBytes = 5 * 1024 * 1024;
+    const extension = file.name.toLowerCase().split('.').pop() || '';
+    const validExtension = ['jpg', 'jpeg', 'png', 'webp'].includes(extension);
+    const validMimeType = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type.toLowerCase());
+    if (!validExtension && !validMimeType) {
+      this.selectedProfilePhotoFile = null;
+      if (input) {
+        input.value = '';
+      }
+      this.toast.error(this.language.t('employee.photoInvalidType'));
+      return;
+    }
+
+    if (file.size > maxSizeBytes) {
+      this.selectedProfilePhotoFile = null;
+      if (input) {
+        input.value = '';
+      }
+      this.toast.error(this.language.t('employee.photoTooLarge'));
+      return;
+    }
+
+    this.selectedProfilePhotoFile = file;
+  }
+
+  uploadProfilePhoto(): void {
+    const username = this.auth.getUsername();
+    if (!username) {
+      this.toast.error(this.language.t('employee.photoUploadFailed'));
+      return;
+    }
+    if (!this.selectedProfilePhotoFile) {
+      this.toast.error(this.language.t('employee.photoPickFile'));
+      return;
+    }
+
+    this.userService.uploadProfilePhoto(username, this.selectedProfilePhotoFile).subscribe({
+      next: () => {
+        this.toast.success(this.language.t('employee.photoUploadSuccess'));
+        this.selectedProfilePhotoFile = null;
+        this.refreshAll(true);
+      },
+      error: () => {
+        this.toast.error(this.language.t('employee.photoUploadFailed'));
+      }
+    });
+  }
+
+  onEmployeePhotoError(): void {
+    this.employeeProfilePhotoUrl = null;
   }
 
   getTimeRemaining(startTime: string): string {
@@ -228,6 +305,7 @@ export class EmployeeComponent implements OnInit, OnDestroy {
     const employee = users.find(user => this.normalize(user.username) === username) ?? null;
     this.profileLoaded = Boolean(employee);
     this.employeeName = employee?.name || this.auth.getUsername() || '';
+    this.employeeProfilePhotoUrl = this.withCacheBust(employee?.profilePhotoUrl ?? null);
     this.allBookings = bookings;
     this.filterBookings();
     this.lastRefreshAt = Date.now();
@@ -265,5 +343,13 @@ export class EmployeeComponent implements OnInit, OnDestroy {
 
   private normalize(value: string | null | undefined): string {
     return (value || '').trim().toLowerCase();
+  }
+
+  private withCacheBust(url: string | null): string | null {
+    if (!url) {
+      return null;
+    }
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${Date.now()}`;
   }
 }

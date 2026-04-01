@@ -251,6 +251,12 @@ export class AdminComponent implements OnInit, OnDestroy {
           hadErrors.value = true;
           return of([] as LocationOutputDTO[]);
         })
+      ),
+      vipRequests: this.vipRequestService.getPendingRequests().pipe(
+        catchError(() => {
+          hadErrors.value = true;
+          return of([] as VipRequest[]);
+        })
       )
     }).subscribe({
       next: result => {
@@ -483,13 +489,29 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   approveVip(request: VipRequest): void {
-    this.updateVipRoleFromRequest(request);
+    this.vipRequestService.approveRequest(request.id).subscribe({
+      next: () => {
+        this.toast.success(this.t('admin.vipApprovedToast'));
+        this.refreshAll(true);
+      },
+      error: err => {
+        const message = this.extractBackendMessage(err) || this.t('admin.userSaveFailed');
+        this.toast.error(message);
+      }
+    });
   }
 
   rejectVip(request: VipRequest): void {
-    this.vipRequestService.rejectRequest(request.id);
-    this.vipRequests = this.vipRequestService.getPendingRequests();
-    this.toast.success(this.t('admin.vipRejectedToast'));
+    this.vipRequestService.rejectRequest(request.id).subscribe({
+      next: () => {
+        this.toast.success(this.t('admin.vipRejectedToast'));
+        this.refreshAll(true);
+      },
+      error: err => {
+        const message = this.extractBackendMessage(err) || this.t('admin.userSaveFailed');
+        this.toast.error(message);
+      }
+    });
   }
 
   saveBooking(): void {
@@ -892,36 +914,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  private updateVipRoleFromRequest(request: VipRequest): void {
-    const targetUser = this.users.find(user => (user.username || '').toLowerCase() === request.username.toLowerCase());
-    if (!targetUser) {
-      this.toast.error(this.t('admin.userSaveFailed'));
-      return;
-    }
-
-    const payload: AdminUserInputDTO = {
-      username: targetUser.username,
-      password: '',
-      name: targetUser.name,
-      email: targetUser.email,
-      phone: targetUser.phone || '',
-      role: 'VIP'
-    };
-
-    this.userService.adminSaveUser(payload).subscribe({
-      next: () => {
-        this.vipRequestService.approveRequest(request.id);
-        this.toast.success(this.t('admin.vipApprovedToast'));
-        this.vipRequests = this.vipRequestService.getPendingRequests();
-        this.refreshAll(true);
-      },
-      error: err => {
-        const message = this.extractBackendMessage(err) || this.t('admin.userSaveFailed');
-        this.toast.error(message);
-      }
-    });
-  }
-
   private getTodayDate(): string {
     const today = new Date();
     const year = today.getFullYear();
@@ -966,7 +958,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.bookings = data.bookings;
     this.services = data.services;
     this.locations = data.locations;
-    this.vipRequests = this.vipRequestService.getPendingRequests();
+    this.vipRequests = data.vipRequests;
     this.lastRefreshAt = Date.now();
 
     this.roleView.syncFromRoles(this.roles);
